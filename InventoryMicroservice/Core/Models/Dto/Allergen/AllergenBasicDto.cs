@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace InventoryMicroservice.Core.Models.Dto.Allergen
 {
-    public abstract class AllergenBasicDto
+    public class AllergenBasicDto
     {
         [MaxLength(6)]
         public string Code { get; set; }
@@ -14,5 +14,10 @@ namespace InventoryMicroservice.Core.Models.Dto.Allergen
         public string Name { get; set; }
         [MaxLength(3000)]
         public string Description { get; set; }
+
+        public AllergenBasicDto()
+        {
+
+        }
     }
 }

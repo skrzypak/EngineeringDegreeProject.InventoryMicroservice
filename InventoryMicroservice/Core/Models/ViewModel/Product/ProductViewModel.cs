@@ -4,18 +4,16 @@ using System.Linq;
 using System.Threading.Tasks;
 using InventoryMicroservice.Core.Fluent.Enums;
 using InventoryMicroservice.Core.Interfaces.ViewModel;
-using InventoryMicroservice.Core.Models.Dto.Allergen;
-using InventoryMicroservice.Core.Models.Dto.Category;
 using InventoryMicroservice.Core.Models.Dto.Product;
 
 namespace InventoryMicroservice.Core.Models.ViewModel.Product
 {
-    public class ProductViewModel : ProductBasicDto, IViewModel
+    public class ProductViewModel<TA, TC> : ProductBasicDto, IViewModel
     {
-        public static ProductViewModelBuilder Builder => new ProductViewModelBuilder();
+        public static ProductViewModelBuilder Builder => new();
         public int Id { get; private set; }
-        public ICollection<AllergenDto> Allergens { get; private set; }
-        public ICollection<CategoryDto> Categories { get; private set; }
+        public ICollection<TA> Allergens { get; private set; }
+        public ICollection<TC> Categories { get; private set; }
 
         public class ProductViewModelBuilder
         {
@@ -24,8 +22,8 @@ namespace InventoryMicroservice.Core.Models.ViewModel.Product
             private string name;
             private string description;
             private UnitType unit;
-            private ICollection<AllergenDto> allergens = new HashSet<AllergenDto>();
-            private ICollection<CategoryDto> categories = new HashSet<CategoryDto>();
+            private ICollection<TA> allergens = new HashSet<TA>();
+            private ICollection<TC> categories = new HashSet<TC>();
 
             public ProductViewModelBuilder Id(int id)
             {
@@ -45,7 +43,7 @@ namespace InventoryMicroservice.Core.Models.ViewModel.Product
                 return this;
             }
 
-            public ProductViewModelBuilder Descripton(string description)
+            public ProductViewModelBuilder Description(string description)
             {
                 this.description = description;
                 return this;
@@ -57,40 +55,42 @@ namespace InventoryMicroservice.Core.Models.ViewModel.Product
                 return this;
             }
 
-            public ProductViewModelBuilder SetAllergens(ICollection<AllergenDto> allergens)
+            public ProductViewModelBuilder SetAllergens(ICollection<TA> allergens)
             {
                 this.allergens = allergens;
                 return this;
             }
 
-            public ProductViewModelBuilder AddAllergenItem(AllergenDto allergen)
+            public ProductViewModelBuilder AddAllergenItem(TA allergen)
             {
                 this.allergens.Add(allergen);
                 return this;
             }
 
-            public ProductViewModelBuilder SetCategories(ICollection<CategoryDto> categories)
+            public ProductViewModelBuilder SetCategories(ICollection<TC> categories)
             {
                 this.categories = categories;
                 return this;
             }
 
-            public ProductViewModelBuilder AddCategoryItem(CategoryDto category)
+            public ProductViewModelBuilder AddCategoryItem(TC category)
             {
                 this.categories.Add(category);
                 return this;
             }
 
-            public ProductViewModel build()
+            public ProductViewModel<TA , TC> Build()
             {
-                var item = new ProductViewModel();
-                item.Id = this.id;
-                item.Code = this.code;
-                item.Name = this.name;
-                item.Description = this.description;
-                item.Unit = this.unit;
-                item.Allergens = this.allergens;
-                item.Categories = this.categories;
+                var item = new ProductViewModel<TA, TC>()
+                {
+                    Id = this.id,
+                    Code = this.code,
+                    Name = this.name,
+                    Description = this.description,
+                    Unit = this.unit,
+                    Allergens = this.allergens,
+                    Categories = this.categories
+                };
                 return item;
             }
         }

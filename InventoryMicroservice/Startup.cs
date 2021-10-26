@@ -47,8 +47,10 @@ namespace InventoryMicroservice
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "InventoryMicroservice", Version = "v1" });
             });
 
-            services.AddScoped<IProductService, ProductService>();
+            services.AddScoped<IAllergenService, AllergenService>();
             services.AddScoped<ICategoryService, CategoryService>();
+            services.AddScoped<IProductService, ProductService>();
+            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -61,7 +63,7 @@ namespace InventoryMicroservice
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "InventoryMicroservice v1"));
             }
 
-            app.UseMiddleware<ErrorHandlingMiddleware>();
+            //app.UseMiddleware<ErrorHandlingMiddleware>();
 
             app.UseRouting();
 

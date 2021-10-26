@@ -7,7 +7,6 @@ using InventoryMicroservice.Core.Exceptions;
 using InventoryMicroservice.Core.Fluent;
 using InventoryMicroservice.Core.Fluent.Entities;
 using InventoryMicroservice.Core.Interfaces.Services;
-using InventoryMicroservice.Core.Mappers;
 using InventoryMicroservice.Core.Models.Dto.Allergen;
 using InventoryMicroservice.Core.Models.Dto.Category;
 using InventoryMicroservice.Core.Models.Dto.Product;
@@ -30,21 +29,21 @@ namespace InventoryMicroservice.Core.Services
             _mapper = mapper;
         }
 
-        public ProductViewModel Get(int id)
+        public ProductViewModel<AllergenDto, CategoryDto> Get(int id)
         {
             var productViewModel = _context
                 .Products
                 .AsNoTracking()
                 .Where(p => p.Id == id)
-                .Include(p => p.AllergensToProducts.OrderBy(a => a.Allergen.Name))
+                .Include(p => p.AllergensToProducts.OrderBy(a2p => a2p.Allergen.Name))
                     .ThenInclude(a2p => a2p.Allergen)
                 .Include(p => p.CategoriesToProducts.OrderBy(c => c.Category.Name))
                     .ThenInclude(c2p => c2p.Category)
-                    .Select(p => ProductViewModel.Builder
+                    .Select(p => ProductViewModel<AllergenDto, CategoryDto>.Builder
                         .Id(p.Id)
                         .Code(p.Code)
                         .Name(p.Name)
-                        .Descripton(p.Description)
+                        .Description(p.Description)
                         .SetAllergens(p.AllergensToProducts.Select(a => new AllergenDto
                             {
                                 Id = a.AllergenId,
@@ -59,7 +58,7 @@ namespace InventoryMicroservice.Core.Services
                                 Name = c.Category.Name,
                                 Description = c.Category.Description,
                             }).ToHashSet()
-                        ).build()
+                        ).Build()
                     )
                 .FirstOrDefault();
 

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using InventoryMicroservice.Core.Interfaces.Services;
+using InventoryMicroservice.Core.Models.Dto.Allergen;
+using InventoryMicroservice.Core.Models.Dto.Category;
 using InventoryMicroservice.Core.Models.Dto.Product;
 using InventoryMicroservice.Core.Models.ViewModel.Product;
 using Microsoft.AspNetCore.Mvc;
@@ -25,7 +27,7 @@ namespace InventoryMicroservice.Core.Controllers.Singles
         }
 
         [HttpGet("{id}")]
-        public ActionResult<ProductViewModel> Get([FromRoute] int id)
+        public ActionResult<ProductViewModel<AllergenDto, CategoryDto>> Get([FromRoute] int id)
         {
             var productViewModel = _productService.Get(id);
             return Ok(productViewModel);
