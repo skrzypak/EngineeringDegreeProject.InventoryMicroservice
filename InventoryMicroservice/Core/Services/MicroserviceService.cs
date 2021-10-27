@@ -100,6 +100,7 @@ namespace InventoryMicroservice.Core.Services
                             Id = iv.Id,
                             Avaliable = iv.NumOfAvailable
                         })
+                        .Where(ivx => ivx.Avaliable > 0)
                         .OrderBy(ivx => ivx.Id) // (dev ID, production EXPIRATION_DATE)
                         .AsEnumerable(),
                     })
@@ -118,27 +119,41 @@ namespace InventoryMicroservice.Core.Services
                 throw new ToLowAvaliableItems($"Not enough products available ({productInfo.Id}) in stock");
             }
 
-            // FIFO - first transfered item of product is seetling or spoilling
+            // Logged operations
+            ICollection<InventoryOperation> inventoryOperations = new List<InventoryOperation>();
+            ushort x = 0;
 
-            foreach (var item in productInfo.Items)
+            // FIFO - first transfered item of product is seetling or spoilling
+            foreach (var ivItem in productInfo.Items)
             {
-                var itemModel = _context.Inventories.First(iv => iv.Id == item.Id);
+                var itemModel = _context.Inventories.First(iv => iv.Id == ivItem.Id);
 
                 if(toSettling > 0)
                 {
                     if(itemModel.NumOfAvailable < toSettling)
                     {
                         // Not enought avaliable quantity to end settling in this loop
-                        itemModel.NumOfSettled += (ushort)(itemModel.NumOfAvailable);
-                        itemModel.NumOfAvailable -= (ushort)(itemModel.NumOfAvailable);
-                        toSettling -= (ushort)(itemModel.NumOfAvailable);
+                        x =  (ushort)(itemModel.NumOfAvailable);
+                        toSettling -= x;
+                       
                     } else
                     {
                         // Enought avaliable quantity to end settling in this loop
-                        itemModel.NumOfSettled += (ushort)(toSettling);
-                        itemModel.NumOfAvailable -= (ushort)(toSettling);
+                        x = (ushort)(toSettling);
                         toSettling = 0;
                     }
+
+                    itemModel.NumOfSettled += x;
+                    itemModel.NumOfAvailable -= x;
+
+                    inventoryOperations.Add(new InventoryOperation()
+                    {
+                        InventoryId = ivItem.Id,
+                        Quantity = x,
+                        Operation = Fluent.Enums.InventoryOperationType.Settle,
+                        Description = "SYSTEM",
+                        Date = DateTime.Now
+                    });
 
                     if (itemModel.NumOfAvailable <= 0)
                     {
@@ -152,20 +167,32 @@ namespace InventoryMicroservice.Core.Services
                     if (itemModel.NumOfAvailable < toSpoilling)
                     {
                         // Not enought avaliable quantity to end spoilling in this loop
-                        itemModel.NumOfSpoiled += (ushort)(itemModel.NumOfAvailable);
-                        itemModel.NumOfAvailable -= (ushort)(itemModel.NumOfAvailable);
-                        toSpoilling -= (ushort)(itemModel.NumOfAvailable);
+                        x = (ushort)(itemModel.NumOfAvailable);
+                        toSpoilling -= x;
                     }
                     else
                     {
                         // Enought avaliable quantity to end spoilling in this loop
-                        itemModel.NumOfSpoiled += (ushort)(toSpoilling);
-                        itemModel.NumOfAvailable -= (ushort)(toSpoilling);
+                        x = (ushort)(toSpoilling);
                         toSpoilling = 0;
                     }
+
+                    itemModel.NumOfSpoiled += x;
+                    itemModel.NumOfAvailable -= x;
+
+                    inventoryOperations.Add(new InventoryOperation()
+                    {
+                        InventoryId = ivItem.Id,
+                        Quantity = x,
+                        Operation = Fluent.Enums.InventoryOperationType.Spoile,
+                        Description = "SYSTEM",
+                        Date = DateTime.Now
+                    });
                 }
 
             }
+
+            _context.InventoriesOperations.AddRange(inventoryOperations);
 
             _context.SaveChanges();
         }
