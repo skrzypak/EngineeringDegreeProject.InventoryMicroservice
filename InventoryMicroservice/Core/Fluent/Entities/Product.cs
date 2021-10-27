@@ -15,5 +15,6 @@ namespace InventoryMicroservice.Core.Fluent.Entities
         public UnitType Unit { get; set; }
         public virtual ICollection<AllergenToProduct> AllergensToProducts { get; set; }
         public virtual ICollection<CategoryToProduct> CategoriesToProducts { get; set; }
+        public virtual ICollection<Inventory> AsInventoryItem { get; set; }
     }
 }

@@ -17,5 +17,6 @@ namespace InventoryMicroservice.Core.Fluent.Entities
         public ushort NumOfSpoiled { get; set; }
         public DateTime? ExpirationDate { get; set; }
         public virtual Product Product { get; set; }
+        public virtual ICollection<InventoryOperation> InventoryOperations { get; set; }
     }
 }
