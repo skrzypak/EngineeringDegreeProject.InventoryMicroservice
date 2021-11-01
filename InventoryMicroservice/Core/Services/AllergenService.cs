@@ -28,9 +28,31 @@ namespace InventoryMicroservice.Core.Services
             _mapper = mapper;
         }
 
-        public AllergenViewModel<ProductBasicWithIdDto> Get(int id)
+        public object Get()
         {
-            var allergenViewModel = _context
+            var dtos = _context
+               .Allergens
+               .AsNoTracking()
+               .Select(a => new {
+                    a.Id,
+                    a.Code,
+                    a.Name,
+                    a.Description
+               })
+               .OrderBy(ax => ax.Name)
+               .ToHashSet();
+
+            if (dtos is null)
+            {
+                throw new NotFoundException($"NOT FOUND any allergen");
+            }
+
+            return dtos;
+        }
+
+        public AllergenViewModel<ProductBasicWithIdDto> GetById(int id)
+        {
+            var dto = _context
                 .Allergens
                 .AsNoTracking()
                 .Where(a => a.Id == id)
@@ -46,21 +68,21 @@ namespace InventoryMicroservice.Core.Services
                  )
                 .FirstOrDefault();
 
-            if (allergenViewModel is null)
+            if (dto is null)
             {
                 throw new NotFoundException($"Allergen with ID {id} NOT FOUND");
             }
 
-            return allergenViewModel;
+            return dto;
         }
 
         public int Create(AllergenCoreDto dto)
         {
-            var category = _mapper.Map<Allergen>(dto);
-            _context.Allergens.Add(category);
+            var model = _mapper.Map<Allergen>(dto);
+            _context.Allergens.Add(model);
             _context.SaveChanges();
 
-            return category.Id;
+            return model.Id;
         }
 
         public void Update(AllergenDto dto)
@@ -70,9 +92,9 @@ namespace InventoryMicroservice.Core.Services
 
         public void Delete(int id)
         {
-            var category = new Allergen() { Id = id };
-            _context.Allergens.Attach(category);
-            _context.Allergens.Remove(category);
+            var model = new Allergen() { Id = id };
+            _context.Allergens.Attach(model);
+            _context.Allergens.Remove(model);
             _context.SaveChanges();
         }
 

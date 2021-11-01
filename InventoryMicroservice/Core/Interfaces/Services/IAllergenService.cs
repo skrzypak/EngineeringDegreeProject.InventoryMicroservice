@@ -10,7 +10,8 @@ namespace InventoryMicroservice.Core.Interfaces.Services
 {
     public interface IAllergenService
     {
-        public AllergenViewModel<ProductBasicWithIdDto> Get(int id);
+        public object Get();
+        public AllergenViewModel<ProductBasicWithIdDto> GetById(int id);
         public int Create(AllergenCoreDto dto);
         public void Update(AllergenDto dto);
         public void Delete(int id);

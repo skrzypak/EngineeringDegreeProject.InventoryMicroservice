@@ -10,7 +10,8 @@ namespace InventoryMicroservice.Core.Interfaces.Services
 {
     public interface ICategoryService
     {
-        public CategoryViewModel<ProductBasicWithIdDto> Get(int id);
+        public object Get();
+        public CategoryViewModel<ProductBasicWithIdDto> GetById(int id);
         public int Create(CategoryCoreDto dto);
         public void Update(CategoryDto dto);
         public void Delete(int id);

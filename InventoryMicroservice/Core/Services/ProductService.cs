@@ -29,7 +29,29 @@ namespace InventoryMicroservice.Core.Services
             _mapper = mapper;
         }
 
-        public ProductViewModel<AllergenDto, CategoryDto> Get(int id)
+        public object Get()
+        {
+            var dtos = _context
+               .Products
+               .AsNoTracking()
+               .Select(p => new {
+                   p.Id,
+                   p.Code,
+                   p.Name,
+                   p.Description
+               })
+               .OrderBy(px => px.Name)
+               .ToHashSet();
+
+            if (dtos is null)
+            {
+                throw new NotFoundException($"NOT FOUND any allergen");
+            }
+
+            return dtos;
+        }
+
+        public ProductViewModel<AllergenDto, CategoryDto> GetById(int id)
         {
             var productViewModel = _context
                 .Products
@@ -58,9 +80,9 @@ namespace InventoryMicroservice.Core.Services
             return productViewModel;
         }
 
-        public int Create(ProductDto<int, int> dto)
+        public int Create(ProductCoreDto<int, int> dto)
         {
-            var model = _mapper.Map<ProductDto<int, int>, Product>(dto);
+            var model = _mapper.Map<ProductCoreDto<int, int>, Product>(dto);
 
             _context.Products.Add(model);
             _context.SaveChanges();

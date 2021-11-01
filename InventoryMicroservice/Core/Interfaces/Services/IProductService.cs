@@ -9,8 +9,9 @@ namespace InventoryMicroservice.Core.Interfaces.Services
 {
     public interface IProductService
     {
-        public ProductViewModel<AllergenDto, CategoryDto> Get(int id);
-        public int Create(ProductDto<int, int> dto);
+        public object Get();
+        public ProductViewModel<AllergenDto, CategoryDto> GetById(int id);
+        public int Create(ProductCoreDto<int, int> dto);
         public void Update(ProductDto<int, int> dto, ICollection<int> removeAllergensIds, ICollection<int> removeCategoriesIds);
         public void Delete(int id);
     }

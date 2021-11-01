@@ -24,10 +24,18 @@ namespace InventoryMicroservice.Core.Controllers.Singles
             _categoryService = categoryService;
         }
 
-        [HttpGet("{id}")]
-        public ActionResult<CategoryViewModel<ProductDto>> Get([FromRoute] int id)
+
+        [HttpGet]
+        public ActionResult<object> Get()
         {
-            var categoryViewModel = _categoryService.Get(id);
+            var response = _categoryService.Get();
+            return Ok(response);
+        }
+
+        [HttpGet("{id}")]
+        public ActionResult<CategoryViewModel<ProductBasicWithIdDto>> Get([FromRoute] int id)
+        {
+            var categoryViewModel = _categoryService.GetById(id);
             return Ok(categoryViewModel);
         }
 

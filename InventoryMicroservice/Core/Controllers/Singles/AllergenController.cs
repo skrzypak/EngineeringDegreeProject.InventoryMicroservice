@@ -24,10 +24,17 @@ namespace InventoryMicroservice.Core.Controllers.Singles
             _allergenService = allergenService;
         }
 
-        [HttpGet("{id}")]
-        public ActionResult<AllergenViewModel<ProductDto>> Get([FromRoute] int id)
+        [HttpGet]
+        public ActionResult<object> Get()
         {
-            var categoryViewModel = _allergenService.Get(id);
+            var response = _allergenService.Get();
+            return Ok(response);
+        }
+
+        [HttpGet("{id}")]
+        public ActionResult<AllergenViewModel<ProductBasicWithIdDto>> Get([FromRoute] int id)
+        {
+            var categoryViewModel = _allergenService.GetById(id);
             return Ok(categoryViewModel);
         }
 

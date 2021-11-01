@@ -28,7 +28,29 @@ namespace InventoryMicroservice.Core.Services
             _mapper = mapper;
         }
 
-        public CategoryViewModel<ProductBasicWithIdDto> Get(int id)
+        public object Get()
+        {
+            var dtos = _context
+               .Categories
+               .AsNoTracking()
+               .Select(c => new {
+                   c.Id,
+                   c.Code,
+                   c.Name,
+                   c.Description
+               })
+               .OrderBy(cx => cx.Name)
+               .ToHashSet();
+
+            if (dtos is null)
+            {
+                throw new NotFoundException($"NOT FOUND any category");
+            }
+
+            return dtos;
+        }
+
+        public CategoryViewModel<ProductBasicWithIdDto> GetById(int id)
         {
             var categoryViewModel = _context
                 .Categories

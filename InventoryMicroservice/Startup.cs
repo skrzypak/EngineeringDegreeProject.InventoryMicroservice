@@ -33,7 +33,7 @@ namespace InventoryMicroservice
             services.AddDbContext<MicroserviceContext>(options =>
             {
                 options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection"), builder => {
-                    //builder.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null);
+                    builder.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null);
                 });
             });
 
@@ -64,7 +64,7 @@ namespace InventoryMicroservice
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "InventoryMicroservice v1"));
             }
 
-            //app.UseMiddleware<ErrorHandlingMiddleware>();
+            app.UseMiddleware<ErrorHandlingMiddleware>();
 
             app.UseRouting();
 

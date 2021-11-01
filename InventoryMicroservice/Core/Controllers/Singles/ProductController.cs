@@ -23,15 +23,22 @@ namespace InventoryMicroservice.Core.Controllers.Singles
             _productService = productService;
         }
 
+        [HttpGet]
+        public ActionResult<object> Get()
+        {
+            var response = _productService.Get();
+            return Ok(response);
+        }
+
         [HttpGet("{id}")]
         public ActionResult<ProductViewModel<AllergenDto, CategoryDto>> Get([FromRoute] int id)
         {
-            var productViewModel = _productService.Get(id);
+            var productViewModel = _productService.GetById(id);
             return Ok(productViewModel);
         }
 
         [HttpPost]
-        public ActionResult Create([FromBody] ProductDto<int, int> dto)
+        public ActionResult Create([FromBody] ProductCoreDto<int, int> dto)
         {
             var id = _productService.Create(dto);
             return CreatedAtAction(nameof(Get), new { id = id }, null);
