@@ -32,7 +32,7 @@ namespace InventoryMicroservice.Core.Controllers.Singles
         }
 
         [HttpPost]
-        public ActionResult Create([FromBody] CategoryBasicDto dto)
+        public ActionResult Create([FromBody] CategoryCoreDto dto)
         {
             var categoryId = _categoryService.Create(dto);
             return CreatedAtAction(nameof(Get), new { id = categoryId }, null);

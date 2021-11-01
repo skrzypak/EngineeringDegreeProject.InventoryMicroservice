@@ -28,7 +28,7 @@ namespace InventoryMicroservice.Core.Services
             _mapper = mapper;
         }
 
-        public AllergenViewModel<ProductDto> Get(int id)
+        public AllergenViewModel<ProductBasicWithIdDto> Get(int id)
         {
             var allergenViewModel = _context
                 .Allergens
@@ -36,19 +36,12 @@ namespace InventoryMicroservice.Core.Services
                 .Where(a => a.Id == id)
                 .Include(a2p => a2p.AllergensToProducts.OrderBy(a => a.Product.Name))
                     .ThenInclude(a2p => a2p.Product)
-                .Select(c => AllergenViewModel<ProductDto>.Builder
+                .Select(c => AllergenViewModel<ProductBasicWithIdDto>.Builder
                     .Id(c.Id)
                     .Code(c.Code)
                     .Name(c.Name)
                     .Description(c.Description)
-                    .SetProducts(c.AllergensToProducts.Select(p => new ProductDto
-                    {
-                        Id = p.Product.Id,
-                        Name = p.Product.Name,
-                        Code = p.Product.Code,
-                        Description = p.Product.Description,
-                        Unit = p.Product.Unit
-                    }).ToHashSet())
+                    .SetProducts(c.AllergensToProducts.Select(p => new ProductBasicWithIdDto(p)).ToHashSet())
                     .Build()
                  )
                 .FirstOrDefault();
@@ -61,7 +54,7 @@ namespace InventoryMicroservice.Core.Services
             return allergenViewModel;
         }
 
-        public int Create(AllergenBasicDto dto)
+        public int Create(AllergenCoreDto dto)
         {
             var category = _mapper.Map<Allergen>(dto);
             _context.Allergens.Add(category);

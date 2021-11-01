@@ -7,7 +7,6 @@ using InventoryMicroservice.Core.Exceptions;
 using InventoryMicroservice.Core.Fluent;
 using InventoryMicroservice.Core.Fluent.Entities;
 using InventoryMicroservice.Core.Interfaces.Services;
-using InventoryMicroservice.Core.Mappers;
 using InventoryMicroservice.Core.Models.Dto.Category;
 using InventoryMicroservice.Core.Models.Dto.Product;
 using InventoryMicroservice.Core.Models.ViewModel.Category;
@@ -29,7 +28,7 @@ namespace InventoryMicroservice.Core.Services
             _mapper = mapper;
         }
 
-        public CategoryViewModel<ProductDto> Get(int id)
+        public CategoryViewModel<ProductBasicWithIdDto> Get(int id)
         {
             var categoryViewModel = _context
                 .Categories
@@ -37,22 +36,14 @@ namespace InventoryMicroservice.Core.Services
                 .Where(c => c.Id == id)
                 .Include(c => c.CategoriesToProducts.OrderBy(c2p => c2p.Product.Name))
                     .ThenInclude(a2p => a2p.Product)
-                .Select(c => CategoryViewModel<ProductDto>.Builder
+                .Select(c => CategoryViewModel<ProductBasicWithIdDto>.Builder
                     .Id(c.Id)
                     .Code(c.Code)
                     .Name(c.Name)
                     .Description(c.Description)
-                    .SetProducts(c.CategoriesToProducts.Select(p => new ProductDto
-                        {
-                            Id = p.Product.Id,
-                            Name = p.Product.Name,
-                            Code = p.Product.Code,
-                            Description = p.Product.Description,
-                            Unit = p.Product.Unit
-                    }).ToHashSet())
+                    .SetProducts(c.CategoriesToProducts.Select(p => new ProductBasicWithIdDto(p)).ToHashSet())
                     .Build()
                  )
-                
                 .FirstOrDefault();
 
             if (categoryViewModel is null)
@@ -63,7 +54,7 @@ namespace InventoryMicroservice.Core.Services
             return categoryViewModel;
         }
 
-        public int Create(CategoryBasicDto dto)
+        public int Create(CategoryCoreDto dto)
         {
             var category = _mapper.Map<Category>(dto);
             _context.Categories.Add(category);

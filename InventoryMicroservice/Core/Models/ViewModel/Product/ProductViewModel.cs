@@ -8,12 +8,10 @@ using InventoryMicroservice.Core.Models.Dto.Product;
 
 namespace InventoryMicroservice.Core.Models.ViewModel.Product
 {
-    public class ProductViewModel<TA, TC> : ProductBasicDto, IViewModel
+    public class ProductViewModel<TA, TC> : ProductCoreDto<TA, TC>, IViewModel
     {
         public static ProductViewModelBuilder Builder => new();
         public int Id { get; private set; }
-        public ICollection<TA> Allergens { get; private set; }
-        public ICollection<TC> Categories { get; private set; }
 
         public class ProductViewModelBuilder
         {

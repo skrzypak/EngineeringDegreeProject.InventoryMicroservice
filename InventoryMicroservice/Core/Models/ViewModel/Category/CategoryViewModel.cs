@@ -8,7 +8,7 @@ using InventoryMicroservice.Core.Models.Dto.Category;
 
 namespace InventoryMicroservice.Core.Models.ViewModel.Category
 {
-    public class CategoryViewModel<T> : CategoryBasicDto, IViewModel
+    public class CategoryViewModel<T> : CategoryCoreDto, IViewModel
     {
         public static CategoryViewModelBuilder Builder => new();
         public int Id { get; set; }

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace InventoryMicroservice.Core.Models.Dto.Product
 {
-    public class ProductDto : ProductBasicDto
+    public class ProductDto<TA, TC> : ProductCoreDto<TA, TC>
     {
         public int Id { get; set; }
     }

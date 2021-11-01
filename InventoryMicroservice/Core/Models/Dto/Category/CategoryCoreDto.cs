@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace InventoryMicroservice.Core.Models.Dto.Allergen
+namespace InventoryMicroservice.Core.Models.Dto.Category
 {
-    public class AllergenBasicDto
+    public class CategoryCoreDto
     {
         [MaxLength(6)]
         public string Code { get; set; }
@@ -14,10 +11,5 @@ namespace InventoryMicroservice.Core.Models.Dto.Allergen
         public string Name { get; set; }
         [MaxLength(3000)]
         public string Description { get; set; }
-
-        public AllergenBasicDto()
-        {
-
-        }
     }
 }

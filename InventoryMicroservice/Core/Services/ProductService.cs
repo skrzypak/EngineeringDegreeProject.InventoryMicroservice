@@ -40,24 +40,12 @@ namespace InventoryMicroservice.Core.Services
                 .Include(p => p.CategoriesToProducts.OrderBy(c => c.Category.Name))
                     .ThenInclude(c2p => c2p.Category)
                     .Select(p => ProductViewModel<AllergenDto, CategoryDto>.Builder
-                        .Id(p.Id)
-                        .Code(p.Code)
-                        .Name(p.Name)
-                        .Description(p.Description)
-                        .SetAllergens(p.AllergensToProducts.Select(a => new AllergenDto
-                            {
-                                Id = a.AllergenId,
-                                Code = a.Allergen.Code,
-                                Name = a.Allergen.Name,
-                                Description = a.Allergen.Description,
-                            }).ToHashSet())
-                        .SetCategories(p.CategoriesToProducts.Select(c => new CategoryDto
-                            {
-                                Id = c.CategoryId,
-                                Code = c.Category.Code,
-                                Name = c.Category.Name,
-                                Description = c.Category.Description,
-                            }).ToHashSet()
+                            .Id(p.Id)
+                            .Code(p.Code)
+                            .Name(p.Name)
+                            .Description(p.Description)
+                            .SetAllergens(p.AllergensToProducts.Select(a => new AllergenDto(a)).ToHashSet())
+                            .SetCategories(p.CategoriesToProducts.Select(c => new CategoryDto(c)).ToHashSet()
                         ).Build()
                     )
                 .FirstOrDefault();
@@ -70,55 +58,17 @@ namespace InventoryMicroservice.Core.Services
             return productViewModel;
         }
 
-        public int Create(ProductCreateDto dto)
+        public int Create(ProductDto<int, int> dto)
         {
-            var product = new Product
-            {
-                Code = dto.Code,
-                Name = dto.Name,
-                Description = dto.Description,
-                Unit = dto.Unit,
-                AllergensToProducts = new HashSet<AllergenToProduct>(),
-                CategoriesToProducts = new HashSet<CategoryToProduct>()
-            };
+            var model = _mapper.Map<ProductDto<int, int>, Product>(dto);
 
-            foreach (var id in dto.AssignAllergens)
-            {
-                product.AllergensToProducts.Add(new AllergenToProduct { AllergenId = id });
-            }
-
-            foreach (var id in dto.AssignCategories)
-            {
-                product.CategoriesToProducts.Add(new CategoryToProduct
-                {
-                    CategoryId = id
-                });
-            }
-
-            foreach (var item in dto.CreateAllergens)
-            {
-                product.AllergensToProducts.Add(new AllergenToProduct
-                {
-                    Allergen = _mapper.Map<Allergen>(item)
-                });
-            }
-
-            foreach (var item in dto.CreateCategories)
-            {
-                product.CategoriesToProducts.Add(new CategoryToProduct
-                {
-                    Category = _mapper.Map<Category>(item)
-                });
-            }
-
-
-            _context.Products.Add(product);
+            _context.Products.Add(model);
             _context.SaveChanges();
 
-            return product.Id;
+            return model.Id;
         }
 
-        public void Update(ProductUpdateDto dto)
+        public void Update(ProductDto<int, int> dto, ICollection<int> removeAllergensIds, ICollection<int> removeCategoriesIds)
         {
             throw new NotImplementedException();
         }

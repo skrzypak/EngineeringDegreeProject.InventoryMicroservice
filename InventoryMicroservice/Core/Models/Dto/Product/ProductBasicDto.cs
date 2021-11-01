@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
 using InventoryMicroservice.Core.Fluent.Enums;
 
 namespace InventoryMicroservice.Core.Models.Dto.Product
 {
-    public abstract class ProductBasicDto
+    public class ProductBasicDto
     {
         [MaxLength(6)]
         public virtual string Code { get; set; }
