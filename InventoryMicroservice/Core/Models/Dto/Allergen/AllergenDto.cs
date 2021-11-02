@@ -10,6 +10,10 @@ namespace InventoryMicroservice.Core.Models.Dto.Allergen
     {
         public int Id { get; set; }
 
+        public AllergenDto()
+        {
+        }
+
         public AllergenDto(AllergenToProduct values)
         {
             Id = values.AllergenId;

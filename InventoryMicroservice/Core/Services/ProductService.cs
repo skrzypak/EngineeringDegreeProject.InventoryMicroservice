@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using Comunication.Shared;
+using Comunication.Shared.PayloadValue;
 using InventoryMicroservice.Core.Exceptions;
 using InventoryMicroservice.Core.Fluent;
 using InventoryMicroservice.Core.Fluent.Entities;
@@ -11,6 +13,7 @@ using InventoryMicroservice.Core.Models.Dto.Allergen;
 using InventoryMicroservice.Core.Models.Dto.Category;
 using InventoryMicroservice.Core.Models.Dto.Product;
 using InventoryMicroservice.Core.Models.ViewModel.Product;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -21,12 +24,14 @@ namespace InventoryMicroservice.Core.Services
         private readonly ILogger<ProductService> _logger;
         private readonly MicroserviceContext _context;
         private readonly IMapper _mapper;
+        private readonly IBus _bus;
 
-        public ProductService(ILogger<ProductService> logger, MicroserviceContext context, IMapper mapper)
+        public ProductService(ILogger<ProductService> logger, MicroserviceContext context, IMapper mapper, IBus bus)
         {
             _logger = logger;
             _context = context;
             _mapper = mapper;
+            _bus = bus;
         }
 
         public object Get()
@@ -80,12 +85,18 @@ namespace InventoryMicroservice.Core.Services
             return productViewModel;
         }
 
-        public int Create(ProductCoreDto<int, int> dto)
+        public async Task<int> Create(ProductCoreDto<int, int> dto)
         {
             var model = _mapper.Map<ProductCoreDto<int, int>, Product>(dto);
 
             _context.Products.Add(model);
             _context.SaveChanges();
+
+            Uri uri = new Uri("rabbitmq://localhost/productQueue");
+            var endPoint = await _bus.GetSendEndpoint(uri);
+            var message = _mapper.Map<Product, ProductPayloadValue>(model);
+            var payload = new Payload<ProductPayloadValue>(message, CRUD.Create);
+            await endPoint.Send(payload);
 
             return model.Id;
         }

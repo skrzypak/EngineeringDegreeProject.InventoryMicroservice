@@ -10,6 +10,10 @@ namespace InventoryMicroservice.Core.Models.Dto.Category
     {
         public int Id { get; set; }
 
+        public CategoryDto()
+        {
+        }
+
         public CategoryDto(CategoryToProduct values)
         {
             Id = values.CategoryId;

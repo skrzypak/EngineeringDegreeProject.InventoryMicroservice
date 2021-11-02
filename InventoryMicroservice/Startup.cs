@@ -6,6 +6,7 @@ using InventoryMicroservice.Core.Fluent;
 using InventoryMicroservice.Core.Interfaces.Services;
 using InventoryMicroservice.Core.Middlewares;
 using InventoryMicroservice.Core.Services;
+using MassTransit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -36,6 +37,19 @@ namespace InventoryMicroservice
                     builder.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null);
                 });
             });
+
+            services.AddMassTransit(x =>
+            {
+                x.AddBus(provider => Bus.Factory.CreateUsingRabbitMq(config =>
+                {
+                    config.Host(new Uri("rabbitmq://localhost"), h =>
+                    {
+                        h.Username("guest");
+                        h.Password("guest");
+                    });
+                }));
+            });
+            services.AddMassTransitHostedService();
 
             services.AddControllers();
             services.AddScoped<ErrorHandlingMiddleware>();
