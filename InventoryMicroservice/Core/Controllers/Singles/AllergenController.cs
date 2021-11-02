@@ -39,9 +39,9 @@ namespace InventoryMicroservice.Core.Controllers.Singles
         }
 
         [HttpPost]
-        public ActionResult Create([FromBody] AllergenCoreDto dto)
+        public async Task<ActionResult> Create([FromBody] AllergenCoreDto dto)
         {
-            var categoryId = _allergenService.Create(dto);
+            var categoryId = await _allergenService.Create(dto);
             return CreatedAtAction(nameof(Get), new { id = categoryId }, null);
         }
 

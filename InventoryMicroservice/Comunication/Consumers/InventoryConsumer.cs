@@ -61,17 +61,20 @@ namespace InventoryMicroservice.Comunication.Consumers
         {
             ICollection<Inventory> inventories = new HashSet<Inventory>();
 
-            foreach(var item in val.Items)
+            foreach (var item in val.Items)
             {
-                inventories.Add(new Inventory()
+                if (item.Crud == CRUD.Create || item.Crud == CRUD.Update || item.Crud == CRUD.Exists)
                 {
-                    ProductId = item.ProductId,
-                    InvoicingSupplierId = val.InvoicingSupplierId,
-                    InvoicingDocumentId = val.InvoicingDocumentId,
-                    InvoicingDocumentToProductId = item.InvoicingDocumentToProductId,
-                    NumOfAvailable = item.NumOfAvailable,
-                    ExpirationDate = item.ExpirationDate
-                });
+                    inventories.Add(new Inventory()
+                    {
+                        ProductId = item.ProductId,
+                        InvoicingSupplierId = val.InvoicingSupplierId,
+                        InvoicingDocumentId = val.InvoicingDocumentId,
+                        InvoicingDocumentToProductId = item.InvoicingDocumentToProductId,
+                        NumOfAvailable = item.NumOfAvailable,
+                        ExpirationDate = item.ExpirationDate
+                    });
+                }
             }
 
             return inventories;

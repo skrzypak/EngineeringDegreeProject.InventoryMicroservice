@@ -85,18 +85,15 @@ namespace InventoryMicroservice.Core.Services
             return productViewModel;
         }
 
-        public async Task<int> Create(ProductCoreDto<int, int> dto)
+        public async Task<int> Create(ProductCoreDto<int , int> dto)
         {
             var model = _mapper.Map<ProductCoreDto<int, int>, Product>(dto);
 
             _context.Products.Add(model);
             _context.SaveChanges();
 
-            Uri uri = new Uri("rabbitmq://localhost/productQueue");
-            var endPoint = await _bus.GetSendEndpoint(uri);
             var message = _mapper.Map<Product, ProductPayloadValue>(model);
-            var payload = new Payload<ProductPayloadValue>(message, CRUD.Create);
-            await endPoint.Send(payload);
+            await SyncAsync(message, CRUD.Create);
 
             return model.Id;
         }
@@ -112,6 +109,22 @@ namespace InventoryMicroservice.Core.Services
             _context.Products.Attach(product);
             _context.Products.Remove(product);
             _context.SaveChanges();
+        }
+
+        private async Task SyncAsync(ProductPayloadValue message, CRUD crud)
+        {
+            var payload = new Payload<ProductPayloadValue>(message, crud);
+
+            Uri[] uri = {
+                new Uri("rabbitmq://localhost/msinvo.product.queue"),
+                new Uri("rabbitmq://localhost/msgas.product.queue")
+            };
+
+            foreach (var u in uri)
+            {
+                var endPoint = await _bus.GetSendEndpoint(u);
+                await endPoint.Send(payload);
+            }
         }
     }
 }

@@ -51,7 +51,7 @@ namespace InventoryMicroservice
                         h.Password("guest");
                     });
 
-                    config.ReceiveEndpoint("inventoryQueue", ep =>
+                    config.ReceiveEndpoint("msinve.inventory.queue", ep =>
                     {
                         ep.PrefetchCount = 16;
                         ep.UseMessageRetry(r => r.Interval(2, 100));

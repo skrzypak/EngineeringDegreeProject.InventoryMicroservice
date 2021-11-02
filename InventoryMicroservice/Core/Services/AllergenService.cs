@@ -87,11 +87,8 @@ namespace InventoryMicroservice.Core.Services
             _context.Allergens.Add(model);
             _context.SaveChanges();
 
-            Uri uri = new Uri("rabbitmq://localhost/allergenQueue");
-            var endPoint = await _bus.GetSendEndpoint(uri);
             var message = _mapper.Map<Allergen, AllergenPayloadValue>(model);
-            var payload = new Payload<AllergenPayloadValue>(message, CRUD.Create);
-            await endPoint.Send(payload);
+            await SyncAsync(message, CRUD.Create);
 
             return model.Id;
         }
@@ -107,6 +104,21 @@ namespace InventoryMicroservice.Core.Services
             _context.Allergens.Attach(model);
             _context.Allergens.Remove(model);
             _context.SaveChanges();
+        }
+
+        private async Task SyncAsync(AllergenPayloadValue message, CRUD crud)
+        {
+            var payload = new Payload<AllergenPayloadValue>(message, crud);
+
+            Uri[] uri = {
+                new Uri("rabbitmq://localhost/msgas.allergen.queue"),
+            };
+
+            foreach (var u in uri)
+            {
+                var endPoint = await _bus.GetSendEndpoint(u);
+                await endPoint.Send(payload);
+            }
         }
 
     }

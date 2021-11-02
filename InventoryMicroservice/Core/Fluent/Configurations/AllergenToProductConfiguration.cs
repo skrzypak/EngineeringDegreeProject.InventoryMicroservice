@@ -12,14 +12,12 @@ namespace InventoryMicroservice.Core.Fluent.Configurations
     {
         public void Configure(EntityTypeBuilder<AllergenToProduct> modelBuilder)
         {
-            modelBuilder.HasKey(a => a.Id);
-            modelBuilder.Property(a => a.Id).ValueGeneratedOnAdd().IsRequired();
+            modelBuilder.HasKey(a => new { a.AllergenId, a.ProductId });
 
             modelBuilder.Property(a => a.AllergenId).IsRequired();
             modelBuilder.Property(a => a.ProductId).IsRequired();
 
             modelBuilder.ToTable("AllergensToProducts");
-            modelBuilder.Property(a => a.Id).HasColumnName("Id");
             modelBuilder.Property(a => a.AllergenId).HasColumnName("AllergenId");
             modelBuilder.Property(a => a.ProductId).HasColumnName("ProductId");
         }

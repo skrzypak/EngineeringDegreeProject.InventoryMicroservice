@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using InventoryMicroservice.Core.Fluent.Enums;
+using Comunication.Shared;
 
 namespace InventoryMicroservice.Core.Models.Dto.Product
 {
     public class ProductCoreDto<TA, TC> : ProductBasicDto
     {
-        public ICollection<TA> Allergens { get; set; }
-        public ICollection<TC> Categories { get; set; }
+        public virtual ICollection<TA> Allergens { get; set; }
+        public virtual ICollection<TC> Categories { get; set; }
     }
 }

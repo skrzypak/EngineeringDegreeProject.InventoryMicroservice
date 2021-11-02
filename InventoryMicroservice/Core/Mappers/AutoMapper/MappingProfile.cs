@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using AutoMapper;
+using Comunication.Shared;
 using InventoryMicroservice.Core.Fluent.Entities;
 using InventoryMicroservice.Core.Models.Dto.Allergen;
 using InventoryMicroservice.Core.Models.Dto.Category;

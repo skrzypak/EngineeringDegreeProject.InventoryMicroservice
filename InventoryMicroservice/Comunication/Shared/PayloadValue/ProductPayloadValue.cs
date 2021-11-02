@@ -7,7 +7,10 @@ using InventoryMicroservice.Core.Models.Dto.Product;
 
 namespace Comunication.Shared.PayloadValue
 {
-    public class ProductPayloadValue : ProductDto<int, int>, IMessage
+    public class ProductPayloadValue : ProductBasicDto, IMessage
     {
+        public int Id { get; set; }
+        public IDictionary<int, CRUD> Allergens { get; set; } = new Dictionary<int, CRUD>();
+        public IDictionary<int, CRUD> Categories { get; set; } = new Dictionary<int, CRUD>();
     }
 }

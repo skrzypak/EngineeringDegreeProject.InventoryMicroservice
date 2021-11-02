@@ -12,14 +12,12 @@ namespace InventoryMicroservice.Core.Fluent.Configurations
     {
         public void Configure(EntityTypeBuilder<CategoryToProduct> modelBuilder)
         {
-            modelBuilder.HasKey(a => a.Id);
-            modelBuilder.Property(a => a.Id).ValueGeneratedOnAdd().IsRequired();
+            modelBuilder.HasKey(a => new { a.CategoryId, a.ProductId });
 
             modelBuilder.Property(a => a.CategoryId).IsRequired();
             modelBuilder.Property(a => a.ProductId).IsRequired();
 
             modelBuilder.ToTable("CategoriesToProducts");
-            modelBuilder.Property(a => a.Id).HasColumnName("Id");
             modelBuilder.Property(a => a.CategoryId).HasColumnName("CategoryId");
             modelBuilder.Property(a => a.ProductId).HasColumnName("ProductId");
         }

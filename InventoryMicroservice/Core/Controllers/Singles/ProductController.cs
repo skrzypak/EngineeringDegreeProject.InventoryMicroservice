@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using InventoryMicroservice.Core.Interfaces.Services;
 using InventoryMicroservice.Core.Models.Dto.Allergen;
 using InventoryMicroservice.Core.Models.Dto.Category;
@@ -38,9 +39,9 @@ namespace InventoryMicroservice.Core.Controllers.Singles
         }
 
         [HttpPost]
-        public ActionResult Create([FromBody] ProductCoreDto<int, int> dto)
+        public async Task<ActionResult> Create([FromBody] ProductCoreDto<int, int> dto)
         {
-            var id = _productService.Create(dto);
+            var id = await _productService.Create(dto);
             return CreatedAtAction(nameof(Get), new { id = id }, null);
         }
 
