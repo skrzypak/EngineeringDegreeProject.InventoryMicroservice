@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using GreenPipes;
+using InventoryMicroservice.Comunication.Consumers;
 using InventoryMicroservice.Core.Fluent;
 using InventoryMicroservice.Core.Interfaces.Services;
 using InventoryMicroservice.Core.Middlewares;
@@ -40,12 +42,20 @@ namespace InventoryMicroservice
 
             services.AddMassTransit(x =>
             {
+                x.AddConsumer<InventoryConsumer>();
                 x.AddBus(provider => Bus.Factory.CreateUsingRabbitMq(config =>
                 {
                     config.Host(new Uri("rabbitmq://localhost"), h =>
                     {
                         h.Username("guest");
                         h.Password("guest");
+                    });
+
+                    config.ReceiveEndpoint("inventoryQueue", ep =>
+                    {
+                        ep.PrefetchCount = 16;
+                        ep.UseMessageRetry(r => r.Interval(2, 100));
+                        ep.ConfigureConsumer<InventoryConsumer>(provider);
                     });
                 }));
             });

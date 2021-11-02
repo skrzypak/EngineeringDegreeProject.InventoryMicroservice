@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using Comunication.Shared;
+using Comunication.Shared.PayloadValue;
 using InventoryMicroservice.Core.Exceptions;
 using InventoryMicroservice.Core.Fluent;
 using InventoryMicroservice.Core.Fluent.Entities;
@@ -10,6 +12,7 @@ using InventoryMicroservice.Core.Interfaces.Services;
 using InventoryMicroservice.Core.Models.Dto.Allergen;
 using InventoryMicroservice.Core.Models.Dto.Product;
 using InventoryMicroservice.Core.Models.ViewModel.Allergen;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -20,12 +23,14 @@ namespace InventoryMicroservice.Core.Services
         private readonly ILogger<AllergenService> _logger;
         private readonly MicroserviceContext _context;
         private readonly IMapper _mapper;
+        private readonly IBus _bus;
 
-        public AllergenService(ILogger<AllergenService> logger, MicroserviceContext context, IMapper mapper)
+        public AllergenService(ILogger<AllergenService> logger, MicroserviceContext context, IMapper mapper, IBus bus)
         {
             _logger = logger;
             _context = context;
             _mapper = mapper;
+            _bus = bus;
         }
 
         public object Get()
@@ -76,11 +81,17 @@ namespace InventoryMicroservice.Core.Services
             return dto;
         }
 
-        public int Create(AllergenCoreDto dto)
+        public async Task<int> Create(AllergenCoreDto dto)
         {
             var model = _mapper.Map<Allergen>(dto);
             _context.Allergens.Add(model);
             _context.SaveChanges();
+
+            Uri uri = new Uri("rabbitmq://localhost/allergenQueue");
+            var endPoint = await _bus.GetSendEndpoint(uri);
+            var message = _mapper.Map<Allergen, AllergenPayloadValue>(model);
+            var payload = new Payload<AllergenPayloadValue>(message, CRUD.Create);
+            await endPoint.Send(payload);
 
             return model.Id;
         }

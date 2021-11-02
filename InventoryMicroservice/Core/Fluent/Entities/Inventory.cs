@@ -10,8 +10,8 @@ namespace InventoryMicroservice.Core.Fluent.Entities
         public int Id { get; set; }
         public int ProductId { get; set; }
         public int InvoicingSupplierId { get; set; }
-        public int InvoicingDeliveryDocumentId { get; set; }
-        public int InvoicingDeliveryProductId { get; set; }
+        public int InvoicingDocumentId { get; set; }
+        public int InvoicingDocumentToProductId { get; set; }
         public ushort NumOfAvailable { get; set; }
         public ushort NumOfSettled { get; set; }
         public ushort NumOfSpoiled { get; set; }

@@ -26,7 +26,6 @@
     <Folder Include="Core\Fluent\Entities\" />
     <Folder Include="Core\Fluent\Enums\" />
     <Folder Include="Core\Models\ViewModel\" />
-    <Folder Include="Comunication\Consumers\" />
   </ItemGroup>
 
 </Project>

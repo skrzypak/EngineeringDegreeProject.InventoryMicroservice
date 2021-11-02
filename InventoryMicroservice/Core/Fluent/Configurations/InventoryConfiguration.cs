@@ -17,8 +17,8 @@ namespace InventoryMicroservice.Core.Fluent.Configurations
 
             modelBuilder.Property(a => a.ProductId).IsRequired();
             modelBuilder.Property(a => a.InvoicingSupplierId).IsRequired();
-            modelBuilder.Property(a => a.InvoicingDeliveryDocumentId).IsRequired();
-            modelBuilder.Property(a => a.InvoicingDeliveryProductId).IsRequired();
+            modelBuilder.Property(a => a.InvoicingDocumentId).IsRequired();
+            modelBuilder.Property(a => a.InvoicingDocumentToProductId).IsRequired();
 
             modelBuilder.Property(a => a.NumOfAvailable).HasDefaultValue(0).IsRequired();
             modelBuilder.Property(a => a.NumOfSettled).HasDefaultValue(0).IsRequired();
@@ -29,8 +29,8 @@ namespace InventoryMicroservice.Core.Fluent.Configurations
             modelBuilder.Property(a => a.Id).HasColumnName("Id");
             modelBuilder.Property(a => a.ProductId).HasColumnName("ProductId");
             modelBuilder.Property(a => a.InvoicingSupplierId).HasColumnName("SupplierId");
-            modelBuilder.Property(a => a.InvoicingDeliveryDocumentId).HasColumnName("DeliveryDocumentId");
-            modelBuilder.Property(a => a.InvoicingDeliveryProductId).HasColumnName("DeliveryProductId");
+            modelBuilder.Property(a => a.InvoicingDocumentId).HasColumnName("DocumentId");
+            modelBuilder.Property(a => a.InvoicingDocumentToProductId).HasColumnName("DocumentToProductId");
             modelBuilder.Property(a => a.NumOfAvailable).HasColumnName("NumOfAvailable");
             modelBuilder.Property(a => a.NumOfSettled).HasColumnName("NumOfSettled");
             modelBuilder.Property(a => a.NumOfSpoiled).HasColumnName("NumOfSpoiled");

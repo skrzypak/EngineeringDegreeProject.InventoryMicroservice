@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Comunication.Shared.Interfaces;
 using InventoryMicroservice.Core.Models.Dto.Allergen;
 
-namespace Comunication.Shared.Messages
+namespace Comunication.Shared.PayloadValue
 {
     public class AllergenPayloadValue : AllergenDto, IMessage
     {

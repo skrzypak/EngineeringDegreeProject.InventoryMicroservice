@@ -9,6 +9,7 @@ namespace InventoryMicroservice.Comunication.Mapper
     {
         public MappingProfile()
         {
+            CreateMap<Allergen, AllergenPayloadValue>();
             CreateMap<Product, ProductPayloadValue>();
         }
     }
