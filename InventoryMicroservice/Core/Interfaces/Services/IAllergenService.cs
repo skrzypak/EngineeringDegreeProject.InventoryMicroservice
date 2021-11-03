@@ -13,7 +13,7 @@ namespace InventoryMicroservice.Core.Interfaces.Services
         public object Get();
         public AllergenViewModel<ProductBasicWithIdDto> GetById(int id);
         public Task<int> Create(AllergenCoreDto dto);
-        public void Update(AllergenDto dto);
-        public void Delete(int id);
+        public Task Update(AllergenDto dto);
+        public Task Delete(int id);
     }
 }

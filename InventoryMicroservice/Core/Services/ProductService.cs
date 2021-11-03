@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using Comunication.Shared;
@@ -89,25 +90,46 @@ namespace InventoryMicroservice.Core.Services
         {
             var model = _mapper.Map<ProductCoreDto<int, int>, Product>(dto);
 
-            _context.Products.Add(model);
-            _context.SaveChanges();
+            var strategy = _context.Database.CreateExecutionStrategy();
+            await strategy.ExecuteAsync(async () =>
+            {
+                using (var transaction = _context.Database.BeginTransaction())
+                {
+                    try
+                    {
+                        _context.Products.Add(model);
+                        await _context.SaveChangesAsync();
 
-            var message = _mapper.Map<Product, ProductPayloadValue>(model);
-            await SyncAsync(message, CRUD.Create);
+                        var message = _mapper.Map<Product, ProductPayloadValue>(model);
+                        await SyncAsync(message, CRUD.Create);
+
+                        transaction.Commit();
+                    }
+                    catch (Exception)
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
+                }
+            });
 
             return model.Id;
         }
 
-        public void Update(ProductDto<int, int> dto, ICollection<int> removeAllergensIds, ICollection<int> removeCategoriesIds)
+        public async Task Update(ProductDto<int, int> dto, ICollection<int> removeAllergensIds, ICollection<int> removeCategoriesIds)
         {
             throw new NotImplementedException();
         }
 
-        public void Delete(int id)
+        public async Task Delete(int id)
         {
             var product = new Product() { Id = id };
             _context.Products.Attach(product);
             _context.Products.Remove(product);
+
+            var message = new ProductPayloadValue() { Id = id };
+            await SyncAsync(message, CRUD.Delete);
+
             _context.SaveChanges();
         }
 
@@ -120,10 +142,26 @@ namespace InventoryMicroservice.Core.Services
                 new Uri("rabbitmq://localhost/msgas.product.queue")
             };
 
-            foreach (var u in uri)
+            CancellationTokenSource s_cts = new CancellationTokenSource();
+            s_cts.CancelAfter(5000);
+
+            try
             {
-                var endPoint = await _bus.GetSendEndpoint(u);
-                await endPoint.Send(payload);
+
+                foreach (var u in uri)
+                {
+                    var endPoint = await _bus.GetSendEndpoint(u);
+                    await endPoint.Send(payload, s_cts.Token);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+            finally
+            {
+                s_cts.Dispose();
             }
         }
     }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using Comunication.Shared;
@@ -84,25 +85,47 @@ namespace InventoryMicroservice.Core.Services
         public async Task<int> Create(AllergenCoreDto dto)
         {
             var model = _mapper.Map<Allergen>(dto);
-            _context.Allergens.Add(model);
-            _context.SaveChanges();
 
-            var message = _mapper.Map<Allergen, AllergenPayloadValue>(model);
-            await SyncAsync(message, CRUD.Create);
+            var strategy = _context.Database.CreateExecutionStrategy();
+            await strategy.ExecuteAsync(async () =>
+            {
+                using (var transaction = _context.Database.BeginTransaction())
+                {
+                    try
+                    {
+                        _context.Allergens.Add(model);
+                        await _context.SaveChangesAsync();
+
+                        var message = _mapper.Map<Allergen, AllergenPayloadValue>(model);
+                        await SyncAsync(message, CRUD.Create);
+
+                        transaction.Commit();
+                    }
+                    catch (Exception)
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
+                }
+            });
 
             return model.Id;
         }
 
-        public void Update(AllergenDto dto)
+        public async Task Update(AllergenDto dto)
         {
             throw new NotImplementedException();
         }
 
-        public void Delete(int id)
+        public async Task Delete(int id)
         {
             var model = new Allergen() { Id = id };
             _context.Allergens.Attach(model);
             _context.Allergens.Remove(model);
+
+            var message = new AllergenPayloadValue() { Id = id };
+            await SyncAsync(message, CRUD.Delete);
+
             _context.SaveChanges();
         }
 
@@ -114,10 +137,26 @@ namespace InventoryMicroservice.Core.Services
                 new Uri("rabbitmq://localhost/msgas.allergen.queue"),
             };
 
-            foreach (var u in uri)
+            CancellationTokenSource s_cts = new CancellationTokenSource();
+            s_cts.CancelAfter(5000);
+
+            try
             {
-                var endPoint = await _bus.GetSendEndpoint(u);
-                await endPoint.Send(payload);
+
+                foreach (var u in uri)
+                {
+                    var endPoint = await _bus.GetSendEndpoint(u);
+                    await endPoint.Send(payload, s_cts.Token);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+            finally
+            {
+                s_cts.Dispose();
             }
         }
 

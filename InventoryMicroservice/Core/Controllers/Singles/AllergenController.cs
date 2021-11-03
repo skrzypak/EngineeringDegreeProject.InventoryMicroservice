@@ -46,16 +46,16 @@ namespace InventoryMicroservice.Core.Controllers.Singles
         }
 
         [HttpPatch]
-        public ActionResult Update([FromBody] AllergenDto dto)
+        public async Task<ActionResult> Update([FromBody] AllergenDto dto)
         {
-            _allergenService.Update(dto);
+            await _allergenService.Update(dto);
             return NoContent();
         }
 
         [HttpDelete("{id}")]
-        public ActionResult Delete([FromRoute] int id)
+        public async Task<ActionResult> Delete([FromRoute] int id)
         {
-            _allergenService.Delete(id);
+            await _allergenService.Delete(id);
             return NoContent();
         }
     }
