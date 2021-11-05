@@ -9,12 +9,18 @@ namespace InventoryMicroservice.Core.Fluent.Entities
     {
         public int Id { get; set; }
         public int ProductId { get; set; }
-        public int InvoicingSupplierId { get; set; }
-        public int InvoicingDocumentId { get; set; }
-        public int InvoicingDocumentToProductId { get; set; }
+        public int SupplierId { get; set; }
+        public int DocumentId { get; set; }
+        public int DocumentToProductId { get; set; }
         public ushort NumOfAvailable { get; set; }
-        public ushort NumOfSettled { get; set; }
-        public ushort NumOfSpoiled { get; set; }
+        public ushort NumOfSettled { get; set; } = 0;
+        public ushort NumOfSpoiled { get; set; } = 0;
+        public ushort NumOfDamaged { get; set; } = 0;
+        public ushort Quantity { get; set; }
+        public int UnitMeasureValue { get; set; }
+        public decimal UnitNetPrice { get; set; }
+        public decimal PercentageVat { get; set; }
+        public decimal GrossValue { get; set; }
         public DateTime? ExpirationDate { get; set; }
         public virtual Product Product { get; set; }
         public virtual ICollection<InventoryOperation> InventoryOperations { get; set; }

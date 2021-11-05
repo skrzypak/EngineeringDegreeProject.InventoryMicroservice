@@ -12,7 +12,7 @@ namespace InventoryMicroservice.Core.Models.ViewModel.Category
     {
         public static CategoryViewModelBuilder Builder => new();
         public int Id { get; set; }
-        public dynamic Products { get; private set; }
+        public ICollection<T> Products { get; private set; }
 
         public class CategoryViewModelBuilder
         {
@@ -20,7 +20,7 @@ namespace InventoryMicroservice.Core.Models.ViewModel.Category
             private string code;
             private string name;
             private string description;
-            private dynamic products = new HashSet<T>();
+            private ICollection<T> products = new HashSet<T>();
 
             public CategoryViewModelBuilder Id(int id)
             {
@@ -46,7 +46,7 @@ namespace InventoryMicroservice.Core.Models.ViewModel.Category
                 return this;
             }
 
-            public CategoryViewModelBuilder SetProducts(dynamic products)
+            public CategoryViewModelBuilder SetProducts(ICollection<T> products)
             {
                 this.products = products;
                 return this;

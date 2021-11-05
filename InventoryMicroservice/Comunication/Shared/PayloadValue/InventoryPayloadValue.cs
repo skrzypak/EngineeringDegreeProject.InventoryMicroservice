@@ -8,15 +8,19 @@ namespace Comunication.Shared.PayloadValue
 {
     public class InventoryPayloadValue : IMessage
     {
-        public int InvoicingSupplierId { get; set; }
-        public int InvoicingDocumentId { get; set; }
-        public ICollection<ItemsPayloadValue> Items { get; set; } = new HashSet<ItemsPayloadValue>();
+        public int SupplierId { get; private set; }
+        public int DocumentId { get; private set; }
+        public ICollection<ItemsPayloadValue> Items { get; private set; } = new HashSet<ItemsPayloadValue>();
         public class ItemsPayloadValue
         {
             public CRUD Crud { get; set; }
             public int ProductId { get; set; }
-            public int InvoicingDocumentToProductId { get; set; }
-            public ushort NumOfAvailable { get; set; } = 0;
+            public int DocumentToProductId { get; set; }
+            public ushort Quantity { get; set; } = 0;
+            public int UnitMeasureValue { get; set; }
+            public decimal UnitNetPrice { get; set; }
+            public decimal PercentageVat { get; set; }
+            public decimal GrossValue { get; set; }
             public DateTime? ExpirationDate { get; set; }
         }
     }

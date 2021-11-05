@@ -65,17 +65,16 @@ namespace InventoryMicroservice.Core.Services
                 .Where(p => p.Id == id)
                 .Include(p => p.AllergensToProducts.OrderBy(a2p => a2p.Allergen.Name))
                     .ThenInclude(a2p => a2p.Allergen)
-                .Include(p => p.CategoriesToProducts.OrderBy(c => c.Category.Name))
-                    .ThenInclude(c2p => c2p.Category)
-                    .Select(p => ProductViewModel<AllergenDto, CategoryDto>.Builder
-                            .Id(p.Id)
-                            .Code(p.Code)
-                            .Name(p.Name)
-                            .Description(p.Description)
-                            .SetAllergens(p.AllergensToProducts.Select(a => new AllergenDto(a)).ToHashSet())
-                            .SetCategories(p.CategoriesToProducts.Select(c => new CategoryDto(c)).ToHashSet()
-                        ).Build()
-                    )
+                .Include(p => p.Category)
+                .Select(p => ProductViewModel<AllergenDto, CategoryDto>.Builder
+                        .Id(p.Id)
+                        .Code(p.Code)
+                        .Name(p.Name)
+                        .Description(p.Description)
+                        .SetAllergens(p.AllergensToProducts.Select(a => new AllergenDto(a)).ToHashSet())
+                        .Category(new CategoryDto(p.Category))
+                        .Build()
+                )
                 .FirstOrDefault();
 
             if (productViewModel is null)

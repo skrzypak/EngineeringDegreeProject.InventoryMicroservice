@@ -14,12 +14,12 @@ namespace InventoryMicroservice.Core.Models.Dto.Category
         {
         }
 
-        public CategoryDto(CategoryToProduct values)
+        public CategoryDto(InventoryMicroservice.Core.Fluent.Entities.Category values)
         {
-            Id = values.CategoryId;
-            Code = values.Category.Code;
-            Name = values.Category.Name;
-            Description = values.Category.Description;
+            Id = values.Id;
+            Code = values.Code;
+            Name = values.Name;
+            Description = values.Description;
         }
     }
 }

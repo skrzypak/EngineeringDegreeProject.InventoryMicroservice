@@ -21,7 +21,7 @@ namespace InventoryMicroservice.Core.Models.ViewModel.Product
             private string description;
             private UnitType unit;
             private ICollection<TA> allergens = new HashSet<TA>();
-            private ICollection<TC> categories = new HashSet<TC>();
+            private TC category;
 
             public ProductViewModelBuilder Id(int id)
             {
@@ -65,15 +65,9 @@ namespace InventoryMicroservice.Core.Models.ViewModel.Product
                 return this;
             }
 
-            public ProductViewModelBuilder SetCategories(ICollection<TC> categories)
+            public ProductViewModelBuilder Category(TC category)
             {
-                this.categories = categories;
-                return this;
-            }
-
-            public ProductViewModelBuilder AddCategoryItem(TC category)
-            {
-                this.categories.Add(category);
+                this.category = category;
                 return this;
             }
 
@@ -87,7 +81,7 @@ namespace InventoryMicroservice.Core.Models.ViewModel.Product
                     Description = this.description,
                     Unit = this.unit,
                     Allergens = this.allergens,
-                    Categories = this.categories
+                    Category = this.category
                 };
                 return item;
             }

@@ -24,20 +24,15 @@ namespace InventoryMicroservice.Core.Mappers.AutoMapper
 
             CreateMap<ProductCoreDto<int, int>, Product>()
                 .ForMember(dest => dest.AllergensToProducts, opt => opt.Ignore())
-                .ForMember(dest => dest.CategoriesToProducts, opt => opt.Ignore())
+                .ForMember(dest => dest.Category, opt => opt.Ignore())
+                .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.Category))
                 .AfterMap((src, dest) =>
                 {
                     dest.AllergensToProducts = new HashSet<AllergenToProduct>();
-                    dest.CategoriesToProducts = new HashSet<CategoryToProduct>();
 
                     foreach (var id in src.Allergens)
                     {
                         dest.AllergensToProducts.Add(new AllergenToProduct { AllergenId = id });
-                    }
-
-                    foreach (var id in src.Categories)
-                    {
-                        dest.CategoriesToProducts.Add(new CategoryToProduct { CategoryId = id });
                     }
                 });
         }

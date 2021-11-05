@@ -21,6 +21,8 @@ namespace InventoryMicroservice.Core.Fluent.Enums
         Add,
         Settle,
         Spoile,
+        Damage,
         Remove
     }
+
 }

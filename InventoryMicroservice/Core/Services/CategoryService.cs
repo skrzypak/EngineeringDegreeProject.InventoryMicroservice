@@ -56,14 +56,13 @@ namespace InventoryMicroservice.Core.Services
                 .Categories
                 .AsNoTracking()
                 .Where(c => c.Id == id)
-                .Include(c => c.CategoriesToProducts.OrderBy(c2p => c2p.Product.Name))
-                    .ThenInclude(a2p => a2p.Product)
+                .Include(c => c.Products)
                 .Select(c => CategoryViewModel<ProductBasicWithIdDto>.Builder
                     .Id(c.Id)
                     .Code(c.Code)
                     .Name(c.Name)
                     .Description(c.Description)
-                    .SetProducts(c.CategoriesToProducts.Select(p => new ProductBasicWithIdDto(p)).ToHashSet())
+                    .SetProducts(c.Products.Select(p => new ProductBasicWithIdDto(p)).ToList())
                     .Build()
                  )
                 .FirstOrDefault();

@@ -12,22 +12,27 @@ namespace InventoryMicroservice.Core.Fluent.Configurations
     {
         public void Configure(EntityTypeBuilder<InventoryOperation> modelBuilder)
         {
-            modelBuilder.HasKey(a => a.Id);
-            modelBuilder.Property(a => a.Id).ValueGeneratedOnAdd().IsRequired();
+            modelBuilder.HasKey(i => i.Id);
+            modelBuilder.Property(i => i.Id).ValueGeneratedOnAdd().IsRequired();
 
-            modelBuilder.Property(a => a.InventoryId).IsRequired();
+            modelBuilder.HasOne(i => i.Inventory)
+                .WithMany(inv => inv.InventoryOperations)
+                .HasForeignKey(i => i.InventoryId)
+                .HasPrincipalKey(inv => inv.Id);
 
-            modelBuilder.Property(a => a.Quantity).HasDefaultValue(0).IsRequired();
-            modelBuilder.Property(a => a.Operation).HasConversion<int>().IsRequired();
-            modelBuilder.Property(a => a.Description).HasMaxLength(3000).IsRequired(false);
+            modelBuilder.Property(i => i.InventoryId).IsRequired();
+
+            modelBuilder.Property(i => i.Quantity).HasDefaultValue(0).IsRequired();
+            modelBuilder.Property(i => i.Operation).HasConversion<int>().IsRequired();
+            modelBuilder.Property(i => i.Description).HasMaxLength(3000).IsRequired(false);
 
             modelBuilder.ToTable("InventoriesOperations");
-            modelBuilder.Property(a => a.Id).HasColumnName("Id");
-            modelBuilder.Property(a => a.InventoryId).HasColumnName("InventoryId");
-            modelBuilder.Property(a => a.Quantity).HasColumnName("Quantity");
-            modelBuilder.Property(a => a.Operation).HasColumnName("Operation");
-            modelBuilder.Property(a => a.Description).HasColumnName("Description");
-            modelBuilder.Property(a => a.Date).HasColumnName("Date");
+            modelBuilder.Property(i => i.Id).HasColumnName("Id");
+            modelBuilder.Property(i => i.InventoryId).HasColumnName("InventoryId");
+            modelBuilder.Property(i => i.Quantity).HasColumnName("Quantity");
+            modelBuilder.Property(i => i.Operation).HasColumnName("Operation");
+            modelBuilder.Property(i => i.Description).HasColumnName("Description");
+            modelBuilder.Property(i => i.Date).HasColumnName("Date");
         }
     }
 }

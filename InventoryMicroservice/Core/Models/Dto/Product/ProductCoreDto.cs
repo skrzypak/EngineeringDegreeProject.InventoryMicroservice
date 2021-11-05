@@ -7,6 +7,6 @@ namespace InventoryMicroservice.Core.Models.Dto.Product
     public class ProductCoreDto<TA, TC> : ProductBasicDto
     {
         public virtual ICollection<TA> Allergens { get; set; }
-        public virtual ICollection<TC> Categories { get; set; }
+        public virtual TC Category { get; set; }
     }
 }

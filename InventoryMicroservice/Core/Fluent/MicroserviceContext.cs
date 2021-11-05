@@ -13,7 +13,6 @@ namespace InventoryMicroservice.Core.Fluent
         public DbSet<Allergen> Allergens { get; set; }
         public DbSet<AllergenToProduct> AllergensToProducts { get; set; }
         public DbSet<Category> Categories { get; set; }
-        public DbSet<CategoryToProduct> CategoriesToProducts { get; set; }
         public DbSet<Inventory> Inventories { get; set; }
         public DbSet<InventoryOperation> InventoriesOperations { get; set; }
         public DbSet<Product> Products { get; set; }
@@ -34,7 +33,6 @@ namespace InventoryMicroservice.Core.Fluent
 
             modelBuilder.ApplyConfiguration(new AllergenConfiguration());
             modelBuilder.ApplyConfiguration(new AllergenToProductConfiguration());
-            modelBuilder.ApplyConfiguration(new CategoryToProductConfiguration());
             modelBuilder.ApplyConfiguration(new CategoryConfiguration());
             modelBuilder.ApplyConfiguration(new InventoryConfiguration());
             modelBuilder.ApplyConfiguration(new InventoryOperationConfiguration());

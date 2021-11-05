@@ -16,13 +16,13 @@ namespace InventoryMicroservice.Core.Models.Dto.Product
             Unit = values.Product.Unit;
         }
 
-        public ProductBasicWithIdDto(CategoryToProduct values)
+        public ProductBasicWithIdDto(InventoryMicroservice.Core.Fluent.Entities.Product values)
         {
-            Id = values.Product.Id;
-            Name = values.Product.Name;
-            Code = values.Product.Code;
-            Description = values.Product.Description;
-            Unit = values.Product.Unit;
+            Id = values.Id;
+            Name = values.Name;
+            Code = values.Code;
+            Description = values.Description;
+            Unit = values.Unit;
         }
 
     }

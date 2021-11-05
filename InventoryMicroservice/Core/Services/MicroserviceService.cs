@@ -6,6 +6,7 @@ using AutoMapper;
 using InventoryMicroservice.Core.Exceptions;
 using InventoryMicroservice.Core.Fluent;
 using InventoryMicroservice.Core.Fluent.Entities;
+using InventoryMicroservice.Core.Fluent.Enums;
 using InventoryMicroservice.Core.Interfaces.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -25,174 +26,272 @@ namespace InventoryMicroservice.Core.Services
             _mapper = mapper;
         }
 
-        public object GetAvaliableInventoryProducts()
+        public object GetAvaliableInventoryItems()
         {
-            var categoryViewModelWithInventoryItems = _context
-                .Categories
-                .AsNoTracking()
-                .Include(c => c.CategoriesToProducts.OrderBy(c2p => c2p.Product.Name))
-                    .ThenInclude(a2p => a2p.Product)
-                        .ThenInclude(p => p.AsInventoryItem)
-                            .ThenInclude(iv => iv.InventoryOperations)
-                .Select(c => new
+            var dto = _context.Inventories
+                .Include(iv => iv.Product)
+                    .ThenInclude(c => c.Category)
+                .Select(iv => new
                 {
-                    Id = c.Id,
-                    Code = c.Code,
-                    Name = c.Name,
-                    Description = c.Description,
-                    Products = c.CategoriesToProducts
-                        .Select(c2p => new { 
-                            Id = c2p.Product.Id,
-                            Code = c2p.Product.Code,
-                            Name = c2p.Product.Name,
-                            Description = c2p.Product.Description,
-                            Avaliable = c2p.Product.AsInventoryItem.Sum(iv => iv.NumOfAvailable),
-                            Settled = c2p.Product.AsInventoryItem.Sum(iv => iv.NumOfSettled),
-                            Spoiled = c2p.Product.AsInventoryItem.Sum(iv => iv.NumOfSpoiled),
-                            Operations = c2p.Product.AsInventoryItem.SelectMany(iv => iv.InventoryOperations
-                                .Select(ivo => new
-                                {
-                                    Id = ivo.Id,
-                                    Quantity = ivo.Quantity,
-                                    Operation = ivo.Operation,
-                                    Date = ivo.Date
-                                })
-                            )
-                            .OrderByDescending(ivox => ivox.Id)
-                            .AsEnumerable(),
-                            ExpirationDates = c2p.Product.AsInventoryItem.Select(iv => new
-                                {
-                                    Id = iv.Id,
-                                    Avaliable = iv.NumOfAvailable,
-                                    Date = iv.ExpirationDate != null ? iv.ExpirationDate : System.DateTime.MaxValue
-                            })
-                            .OrderBy(ivx => ivx.Date)
-                            .AsEnumerable()
-                        })
-                    .AsEnumerable()
-                    .Where(c2px => c2px.Avaliable > 0)
-                    .OrderBy(c2px => c2px.Name.ToUpper())
-                    .DefaultIfEmpty()
-                })
-                .AsEnumerable()
-                .Where(cx => cx.Products.Count() > 0)
-                .OrderBy(cx => cx.Name)
-                .ToHashSet();
+                    InventoryId = iv.Id,
+                    ProductId = iv.Product.Id,
+                    ProductName = iv.Product.Name,
+                    ProductCode = iv.Product.Code,
+                    ProductDescription = iv.Product.Description,
+                    UnitMeasureValue = iv.UnitMeasureValue,
+                    NumOfAvailable = iv.NumOfAvailable,
+                    Category = iv.Product.Category
+                }).ToList().GroupBy(ivx => new { ivx.Category }).Select(ivg => new
+                {
+                    ivg.Key,
+                    Products = ivg.Select(g => new {
+                        g.InventoryId,
+                        g.ProductId,
+                        g.ProductCode,
+                        g.ProductName,
+                        g.ProductDescription,
+                        g.UnitMeasureValue,
+                        g.NumOfAvailable
+                    }).ToList().GroupBy(px => new { px.ProductId, px.ProductCode, px.ProductName, px.ProductDescription }).Select(pg => new
+                    {
+                        pg.Key,
+                        Items = pg.Select(pg => new { 
+                            InventoryId = pg.InventoryId,
+                            NumOfAvailable = pg.NumOfAvailable,
+                            UnitMeasureValue = pg.UnitMeasureValue,
+                        }).ToList().GroupBy(ix => new { ix.UnitMeasureValue }).Select(ixg => new
+                        {
+                            ixg.Key,
+                            ItemsInventoryIds = ixg.Select(g => new { 
+                                g.InventoryId,
+                                g.NumOfAvailable
+                            }),
+                            TotalNumOfAvailable = ixg.Sum(g => g.NumOfAvailable)
+                        }),
+                    }),
+                }).ToList();
 
-            if (categoryViewModelWithInventoryItems is null)
+            if (dto is null)
             {
-                throw new NotFoundException($"Inventory is empty");
+                throw new NotFoundException($"NOT FOUND avaliable inventory items");
             }
 
-            return categoryViewModelWithInventoryItems;
+            return dto;
         }
 
-        public void UpdateQuantityInventoryProduct(int productId, ushort toSettling, ushort toSpoilling)
+        public object GetInventorySummary(DateTime startDate, DateTime endDate) 
         {
-            var productInfo = _context.Products
-                .Include(p => p.AsInventoryItem)
-                    .Select(p => new
+            var dtos = _context.Inventories
+                .Include(iv => iv.Product)
+                .Include(iv => iv.InventoryOperations)
+                .Select(iv => new
+                {
+                    ProductId = iv.ProductId,
+                    Name = iv.Product.Name,
+                    UnitMeasureValue = iv.UnitMeasureValue,
+                    SettledItem = iv.InventoryOperations
+                        .Where(ivo => ivo.InventoryId == iv.Id)
+                        .Where(ivo => ivo.Operation == InventoryOperationType.Settle)
+                        .Where(ivo => startDate <= ivo.Date && ivo.Date <= endDate)
+                        .Sum(ivo => ivo.Quantity),
+                    SpoiledItem = iv.InventoryOperations
+                        .Where(ivo => ivo.InventoryId == iv.Id)
+                        .Where(ivo => ivo.Operation == InventoryOperationType.Spoile)
+                        .Where(ivo => startDate <= ivo.Date && ivo.Date <= endDate)
+                        .Sum(ivo => ivo.Quantity),
+                    DamagedItem = iv.InventoryOperations
+                        .Where(ivo => ivo.InventoryId == iv.Id)
+                        .Where(ivo => ivo.Operation == InventoryOperationType.Damage)
+                        .Where(ivo => startDate <= ivo.Date && ivo.Date <= endDate)
+                        .Sum(ivo => ivo.Quantity),
+                    NetPriceItem = iv.InventoryOperations
+                        .Where(ivo => ivo.InventoryId == iv.Id)
+                        .Where(ivo => ivo.Operation == InventoryOperationType.Settle || ivo.Operation == InventoryOperationType.Spoile || ivo.Operation == InventoryOperationType.Damage)
+                        .Where(ivo => startDate <= ivo.Date && ivo.Date <= endDate)
+                        .Sum(ivo => ivo.Quantity * ivo.Inventory.UnitNetPrice),
+                    GrossValueItem = iv.InventoryOperations
+                        .Where(ivo => ivo.InventoryId == iv.Id)
+                        .Where(ivo => ivo.Operation == InventoryOperationType.Settle || ivo.Operation == InventoryOperationType.Spoile || ivo.Operation == InventoryOperationType.Damage)
+                        .Where(ivo => startDate <= ivo.Date && ivo.Date <= endDate)
+                        .Sum(ivo => ivo.Quantity * (decimal)(ivo.Inventory.GrossValue / ivo.Inventory.Quantity)),
+                }).ToList().GroupBy(ivx => new { ivx.ProductId, ivx.Name }).Select(ivg => new
+                {
+                    ivg.Key,
+                    Items = ivg.Select(g => new
                     {
-                        Id = p.Id,
-                        Avaliable = p.AsInventoryItem != null ? p.AsInventoryItem.Sum(iv => iv.NumOfAvailable) : 0,
-                        Items = p.AsInventoryItem.Select(iv => new
-                        {
-                            Id = iv.Id,
-                            Avaliable = iv.NumOfAvailable
-                        })
-                        .Where(ivx => ivx.Avaliable > 0)
-                        .OrderBy(ivx => ivx.Id) // (dev ID, production EXPIRATION_DATE)
-                        .AsEnumerable(),
+                        g.UnitMeasureValue,
+                        g.SettledItem,
+                        g.SpoiledItem,
+                        g.DamagedItem,
+                        g.NetPriceItem,
+                        g.GrossValueItem
+                    }).GroupBy(gx => new { gx.UnitMeasureValue }).Select(gxg => new {
+                        gxg.Key,
+                        TotalSeetledItems = gxg.Sum(g => g.SettledItem),
+                        TotalSpoiledItem = gxg.Sum(g => g.SpoiledItem),
+                        TotalDamagedItem = gxg.Sum(g => g.DamagedItem),
+                        TotalNetPriceItem = gxg.Sum(g => g.NetPriceItem),
+                        TotalGrossValueItem = gxg.Sum(g => g.GrossValueItem)
                     })
-                    .Where(px => px.Id == productId)
-                .FirstOrDefault();
+                }).ToList();
 
-            if (productInfo is null)
+            if (dtos is null || dtos.Count() == 0)
             {
-                throw new NotFoundException($"Product with id {productInfo.Id} NOT FOUND");
+                throw new NotFoundException($"Summary from {startDate.Date} - {endDate.Date} is empty");
             }
 
-            ushort numOfItemsToRelease = (ushort)(toSettling + toSpoilling);
+            return dtos;
+        }
 
-            if (productInfo.Avaliable < numOfItemsToRelease)
+        public void UpdateInventoryItemManual(int id, InventoryOperationType operationType, ushort quantity)
+        {
+            var item = _context.Inventories.FirstOrDefault(iv => iv.Id == id);
+
+            if (item is null)
             {
-                throw new ToLowAvaliableItems($"Not enough products available ({productInfo.Id}) in stock");
+                throw new NotFoundException($"Item with id {id} NOT FOUND");
             }
 
-            // Logged operations
-            ICollection<InventoryOperation> inventoryOperations = new List<InventoryOperation>();
-            ushort x = 0;
+
+            if (item.NumOfAvailable < quantity)
+            {
+                throw new ToLowAvaliableItems($"Not enough products items available ({id}) in stock");
+            }
+
+            item.NumOfAvailable -= quantity;
+
+            var operationLog = new InventoryOperation()
+            {
+                InventoryId = id,
+                Quantity = quantity,
+                Description = "user",
+                Date = DateTime.Now
+            };
+
+            switch (operationType)
+            {
+                case InventoryOperationType.Settle:
+                    {
+                        item.NumOfSettled += quantity;
+                        operationLog.Operation = InventoryOperationType.Settle;
+                        break;
+                    }
+                case InventoryOperationType.Spoile:
+                    {
+                        item.NumOfSpoiled += quantity;
+                        operationLog.Operation = InventoryOperationType.Spoile;
+                        break;
+                    }
+                case InventoryOperationType.Damage:
+                    {
+                        item.NumOfDamaged += quantity;
+                        operationLog.Operation = InventoryOperationType.Damage;
+                        break;
+                    }
+                default:
+                    {
+                        throw new Exception("Invalid type of operation");
+                    }
+            }
+
+            _context.InventoriesOperations.Add(operationLog);
+
+            _context.SaveChanges();
+        }
+
+        public void UpdateInventoryProduct(int productId, InventoryOperationType operationType, ushort quantity, ushort unitMeasureValue)
+        {
+            var matchingItems = _context.Products
+                .AsNoTracking()
+                .Include(p => p.AsInventoryItem)
+                .Where(p => p.Id == productId)
+                .SelectMany(p => 
+                    p.AsInventoryItem.Select(iv => new {
+                        iv.Id,
+                        iv.NumOfAvailable,
+                        iv.UnitMeasureValue,
+                    })
+                    .Where(ivx => (ushort)ivx.UnitMeasureValue == unitMeasureValue && ivx.NumOfAvailable > 0)
+                    .AsEnumerable()
+                    .OrderBy(ivx => ivx.Id)
+                )
+                .ToList();
+
+            if (matchingItems is null)
+            {
+                throw new NotFoundException($"NOT FOUND any matching items for product with id {productId}, umv: {unitMeasureValue}");
+            }
+
+            var sumOfAvaliable = matchingItems.Sum(mp => mp.NumOfAvailable);
+
+            if (quantity > sumOfAvaliable)
+            {
+                throw new ToLowAvaliableItems($"Not enough divided items available in stock for automatic process");
+            }
+
+            ICollection<InventoryOperation> inventoryOperationsLogs = new List<InventoryOperation>();
+
+            ushort todo = quantity;
+            ushort processing = 0;
 
             // FIFO - first transfered item of product is seetling or spoilling
-            foreach (var ivItem in productInfo.Items)
+            foreach (var item in matchingItems)
             {
-                var itemModel = _context.Inventories.First(iv => iv.Id == ivItem.Id);
-
-                if(toSettling > 0)
+                if (todo > 0)
                 {
-                    if(itemModel.NumOfAvailable < toSettling)
-                    {
-                        // Not enought avaliable quantity to end settling in this loop
-                        x =  (ushort)(itemModel.NumOfAvailable);
-                        toSettling -= x;
-                       
-                    } else
-                    {
-                        // Enought avaliable quantity to end settling in this loop
-                        x = (ushort)(toSettling);
-                        toSettling = 0;
-                    }
+                    var model = _context.Inventories.First(iv => iv.Id == item.Id);
 
-                    itemModel.NumOfSettled += x;
-                    itemModel.NumOfAvailable -= x;
-
-                    inventoryOperations.Add(new InventoryOperation()
+                    if (model.NumOfAvailable < todo)
                     {
-                        InventoryId = ivItem.Id,
-                        Quantity = x,
-                        Operation = Fluent.Enums.InventoryOperationType.Settle,
-                        Description = "SYSTEM",
-                        Date = DateTime.Now
-                    });
-
-                    if (itemModel.NumOfAvailable <= 0)
-                    {
-                        itemModel.NumOfAvailable = 0;
-                        continue;
-                    }
-                }
-
-                if(toSpoilling > 0)
-                {
-                    if (itemModel.NumOfAvailable < toSpoilling)
-                    {
-                        // Not enought avaliable quantity to end spoilling in this loop
-                        x = (ushort)(itemModel.NumOfAvailable);
-                        toSpoilling -= x;
+                        // Not enought avaliable items to end processing
+                        processing = model.NumOfAvailable;
+                        todo -= processing;
                     }
                     else
                     {
-                        // Enought avaliable quantity to end spoilling in this loop
-                        x = (ushort)(toSpoilling);
-                        toSpoilling = 0;
+                        // Enought avaliable items to end processing
+                        processing = todo;
+                        todo = 0;
                     }
 
-                    itemModel.NumOfSpoiled += x;
-                    itemModel.NumOfAvailable -= x;
-
-                    inventoryOperations.Add(new InventoryOperation()
+                    // TODO: strategy pattern
+                    switch(operationType)
                     {
-                        InventoryId = ivItem.Id,
-                        Quantity = x,
-                        Operation = Fluent.Enums.InventoryOperationType.Spoile,
-                        Description = "SYSTEM",
+                        case InventoryOperationType.Settle:
+                            {
+                                model.NumOfSettled += processing;
+                                break;
+                            }
+                        case InventoryOperationType.Spoile:
+                            {
+                                model.NumOfSpoiled += processing;
+                                break;
+                            }
+                        case InventoryOperationType.Damage:
+                            {
+                                model.NumOfDamaged += processing;
+                                break;
+                            }
+                    }
+
+                    model.NumOfAvailable -= processing;
+
+                    inventoryOperationsLogs.Add(new InventoryOperation()
+                    {
+                        InventoryId = model.Id,
+                        Quantity = processing,
+                        Operation = operationType,
+                        Description = "USER/SYSTEM/AUTO",
                         Date = DateTime.Now
                     });
-                }
 
+                } else
+                {
+                    break;
+                }
             }
 
-            _context.InventoriesOperations.AddRange(inventoryOperations);
+            _context.InventoriesOperations.AddRange(inventoryOperationsLogs);
 
             _context.SaveChanges();
         }

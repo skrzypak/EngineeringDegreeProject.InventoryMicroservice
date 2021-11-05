@@ -64,7 +64,7 @@ namespace InventoryMicroservice.Comunication.Consumers
                 {
                     case CRUD.Create:
                     {
-                         var model = CreateItem(val.InvoicingSupplierId, val.InvoicingDocumentId, item);
+                         var model = CreateItem(val.SupplierId, val.DocumentId, item);
                         _context.Inventories.Add(model);
                         break;
                     }
@@ -75,9 +75,9 @@ namespace InventoryMicroservice.Comunication.Consumers
                     case CRUD.Delete:
                     {
                         var model = _context.Inventories.Where(i =>
-                            i.InvoicingSupplierId == val.InvoicingSupplierId &&
-                            i.InvoicingDocumentId == val.InvoicingDocumentId &&
-                            i.InvoicingDocumentToProductId == item.InvoicingDocumentToProductId
+                            i.SupplierId == val.SupplierId &&
+                            i.DocumentId == val.DocumentId &&
+                            i.DocumentToProductId == item.DocumentToProductId
                         ).FirstOrDefault();
 
                         if(model is not null)
@@ -93,8 +93,8 @@ namespace InventoryMicroservice.Comunication.Consumers
         private void Delete(InventoryPayloadValue val)
         {
             var model = _context.Inventories.Where(i => 
-                i.InvoicingSupplierId == val.InvoicingSupplierId &&
-                i.InvoicingDocumentId == val.InvoicingDocumentId
+                i.SupplierId == val.SupplierId &&
+                i.DocumentId == val.DocumentId
             ).ToList();
 
             if(model is not null && model.Count > 0)
@@ -111,7 +111,7 @@ namespace InventoryMicroservice.Comunication.Consumers
             {
                 if (item.Crud == CRUD.Create)
                 {
-                    inventories.Add(CreateItem(val.InvoicingSupplierId, val.InvoicingDocumentId, item));
+                    inventories.Add(CreateItem(val.SupplierId, val.DocumentId, item));
                 }
             }
 
@@ -123,11 +123,19 @@ namespace InventoryMicroservice.Comunication.Consumers
             return new Inventory()
             {
                 ProductId = item.ProductId,
-                InvoicingSupplierId = InvoicingSupplierId,
-                InvoicingDocumentId = InvoicingDocumentId,
-                InvoicingDocumentToProductId = item.InvoicingDocumentToProductId,
-                NumOfAvailable = item.NumOfAvailable,
-                ExpirationDate = item.ExpirationDate
+                SupplierId = InvoicingSupplierId,
+                DocumentId = InvoicingDocumentId,
+                DocumentToProductId = item.DocumentToProductId,
+                NumOfAvailable = item.Quantity,
+                ExpirationDate = item.ExpirationDate,
+                UnitMeasureValue = item.UnitMeasureValue,
+                UnitNetPrice = item.UnitNetPrice,
+                Quantity = item.Quantity,
+                PercentageVat = item.PercentageVat,
+                GrossValue = item.GrossValue,
+                NumOfSettled = 0,
+                NumOfSpoiled = 0,
+                NumOfDamaged = 0
             };
         }
 
