@@ -29,6 +29,7 @@ namespace InventoryMicroservice.Core.Services
         public object GetAvaliableInventoryItems()
         {
             var dto = _context.Inventories
+                .AsNoTracking()
                 .Include(iv => iv.Product)
                     .ThenInclude(c => c.Category)
                 .Select(iv => new
@@ -82,6 +83,7 @@ namespace InventoryMicroservice.Core.Services
         public object GetInventorySummary(DateTime startDate, DateTime endDate) 
         {
             var dtos = _context.Inventories
+                .AsNoTracking()
                 .Include(iv => iv.Product)
                 .Include(iv => iv.InventoryOperations)
                 .Select(iv => new
