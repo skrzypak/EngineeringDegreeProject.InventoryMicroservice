@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 namespace InventoryMicroservice.Core.Controllers.Singles
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("/api/inventory/1.0.0/categories")]
     public class CategoryController: ControllerBase
     {
         private readonly ILogger<CategoryController> _logger;

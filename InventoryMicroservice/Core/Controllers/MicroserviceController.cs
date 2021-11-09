@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 namespace InventoryMicroservice.Core.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("/api/inventory/1.0.0/msv")]
     public class MicroserviceController : ControllerBase
     {
         private readonly ILogger<MicroserviceController> _logger;
@@ -48,7 +48,7 @@ namespace InventoryMicroservice.Core.Controllers
             return NoContent();
         }
 
-        [HttpPatch("product/{productId}")]
+        [HttpPatch("products/{productId}")]
         public ActionResult UpdateInventoryProduct([FromRoute] int productId, [FromQuery] InventoryOperationType operationType, [FromQuery] ushort quantity, [FromQuery]  ushort unitMeasureValue)
         {
             if (operationType == InventoryOperationType.Add || operationType == InventoryOperationType.Remove)
