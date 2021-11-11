@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Authentication;
+using Comunication;
 using GreenPipes;
 using InventoryMicroservice.Comunication.Consumers;
 using InventoryMicroservice.Core.Fluent;
@@ -12,12 +11,10 @@ using InventoryMicroservice.Core.Services;
 using MassTransit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 
 namespace InventoryMicroservice
@@ -49,15 +46,19 @@ namespace InventoryMicroservice
             });
 
             #region MassTransit
+            var rabbitMq = new RabbitMq();
+            Configuration.GetSection("RabbitMq").Bind(rabbitMq);
+            services.AddSingleton(rabbitMq);
+
             services.AddMassTransit(x =>
             {
                 x.AddConsumer<InventoryConsumer>();
                 x.AddBus(provider => Bus.Factory.CreateUsingRabbitMq(config =>
                 {
-                    config.Host(new Uri("rabbitmq://localhost"), h =>
+                    config.Host(new Uri(rabbitMq.Host), h =>
                     {
-                        h.Username("guest");
-                        h.Password("guest");
+                        h.Username(rabbitMq.Username);
+                        h.Password(rabbitMq.Password);
                     });
 
                     config.ReceiveEndpoint("msinve.inventory.queue", ep =>
@@ -79,7 +80,7 @@ namespace InventoryMicroservice
             #region swagger
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "InventoryMicroservice", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "EDP-INVENTORY-MSV", Version = "v1" });
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Description = @"JWT Authorization header using the Bearer scheme. 
@@ -125,12 +126,17 @@ namespace InventoryMicroservice
             {
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "InventoryMicroservice v1"));
+                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "EDP-INVENTORY-MSV"));
             }
 
-            app.UseMiddleware<IPFilterMiddleware>();
-            app.UseMiddleware<ErrorHandlingMiddleware>();
             app.UseHttpsRedirection();
+
+            if (env.IsDevelopment() == false)
+            {
+                app.UseMiddleware<IPFilterMiddleware>();
+            }
+
+            app.UseMiddleware<ErrorHandlingMiddleware>();
 
             app.UseRouting();
 

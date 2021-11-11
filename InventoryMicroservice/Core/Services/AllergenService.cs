@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
+using Comunication;
 using Comunication.Shared;
 using Comunication.Shared.PayloadValue;
 using InventoryMicroservice.Core.Exceptions;
@@ -25,13 +26,15 @@ namespace InventoryMicroservice.Core.Services
         private readonly MicroserviceContext _context;
         private readonly IMapper _mapper;
         private readonly IBus _bus;
+        private readonly RabbitMq _rabbitMq;
 
-        public AllergenService(ILogger<AllergenService> logger, MicroserviceContext context, IMapper mapper, IBus bus)
+        public AllergenService(ILogger<AllergenService> logger, MicroserviceContext context, IMapper mapper, IBus bus, RabbitMq rabbitMq)
         {
             _logger = logger;
             _context = context;
             _mapper = mapper;
             _bus = bus;
+            _rabbitMq = rabbitMq;
         }
 
         public object Get()
@@ -134,7 +137,7 @@ namespace InventoryMicroservice.Core.Services
             var payload = new Payload<AllergenPayloadValue>(message, crud);
 
             Uri[] uri = {
-                new Uri("rabbitmq://localhost/msgas.allergen.queue"),
+                new Uri($"{_rabbitMq.Host}/msgas.allergen.queue"),
             };
 
             CancellationTokenSource s_cts = new CancellationTokenSource();
