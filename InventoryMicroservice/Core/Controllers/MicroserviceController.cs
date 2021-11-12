@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 namespace InventoryMicroservice.Core.Controllers
 {
     [ApiController]
-    [Route("/api/inventory/1.0.0/msv")]
+    [Route("/api/inventory/1.0.0/{enterpriseId}/msv")]
     public class MicroserviceController : ControllerBase
     {
         private readonly ILogger<MicroserviceController> _logger;
@@ -29,42 +29,42 @@ namespace InventoryMicroservice.Core.Controllers
         }
 
         [HttpGet]
-        public ActionResult<object> GetAvaliableInventoryItems()
+        public ActionResult<object> GetAvaliableInventoryItems([FromRoute] int enterpriseId)
         {
-            var inventoryItems = _microserviceService.GetAvaliableInventoryItems();
+            var inventoryItems = _microserviceService.GetAvaliableInventoryItems(enterpriseId);
             return Ok(inventoryItems);
         }
 
         [HttpPatch("{id}")]
-        public ActionResult UpdateInventoryItemManual([FromRoute] int id, [FromQuery] InventoryOperationType operationType, [FromQuery] ushort quantity)
+        public ActionResult UpdateInventoryItemManual([FromRoute] int enterpriseId, [FromRoute] int id, [FromQuery] InventoryOperationType operationType, [FromQuery] ushort quantity)
         {
             if(operationType == InventoryOperationType.Add || operationType == InventoryOperationType.Remove)
             {
                 return BadRequest("Invalid type of operation");
             }
 
-            _microserviceService.UpdateInventoryItemManual(id, operationType, quantity);
+            _microserviceService.UpdateInventoryItemManual(enterpriseId, id, operationType, quantity);
 
             return NoContent();
         }
 
         [HttpPatch("products/{productId}")]
-        public ActionResult UpdateInventoryProduct([FromRoute] int productId, [FromQuery] InventoryOperationType operationType, [FromQuery] ushort quantity, [FromQuery]  ushort unitMeasureValue)
+        public ActionResult UpdateInventoryProduct([FromRoute] int enterpriseId, [FromRoute] int productId, [FromQuery] InventoryOperationType operationType, [FromQuery] ushort quantity, [FromQuery]  ushort unitMeasureValue)
         {
             if (operationType == InventoryOperationType.Add || operationType == InventoryOperationType.Remove)
             {
                 return BadRequest("Invalid type of operation");
             }
 
-            _microserviceService.UpdateInventoryProduct(productId, operationType, quantity, unitMeasureValue);
+            _microserviceService.UpdateInventoryProduct(enterpriseId, productId, operationType, quantity, unitMeasureValue);
 
             return NoContent();
         }
 
         [HttpGet("summary")]
-        public ActionResult<object> GetInventorySummary([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+        public ActionResult<object> GetInventorySummary([FromRoute] int enterpriseId, [FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
         {
-            var response = _microserviceService.GetInventorySummary(startDate, endDate);
+            var response = _microserviceService.GetInventorySummary(enterpriseId, startDate, endDate);
             return Ok(response);
         }
 

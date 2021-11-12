@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using AutoMapper;
 using Comunication.Shared;
+using Comunication.Shared.PayloadValue;
 using InventoryMicroservice.Core.Fluent.Entities;
 using InventoryMicroservice.Core.Models.Dto.Allergen;
 using InventoryMicroservice.Core.Models.Dto.Category;
@@ -35,6 +36,12 @@ namespace InventoryMicroservice.Core.Mappers.AutoMapper
                         dest.AllergensToProducts.Add(new AllergenToProduct { AllergenId = id });
                     }
                 });
+
+            CreateMap<Allergen, AllergenPayloadValue>()
+                .ForMember(dest => dest.EudId, opt => opt.Ignore());
+
+            CreateMap<Product, ProductPayloadValue>()
+                .ForMember(dest => dest.EudId, opt => opt.Ignore());
         }
     }
 }

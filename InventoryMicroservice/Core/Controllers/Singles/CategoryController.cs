@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 namespace InventoryMicroservice.Core.Controllers.Singles
 {
     [ApiController]
-    [Route("/api/inventory/1.0.0/categories")]
+    [Route("/api/inventory/1.0.0/{enterpriseId}/categories")]
     public class CategoryController: ControllerBase
     {
         private readonly ILogger<CategoryController> _logger;
@@ -26,37 +26,37 @@ namespace InventoryMicroservice.Core.Controllers.Singles
 
 
         [HttpGet]
-        public ActionResult<object> Get()
+        public ActionResult<object> Get([FromRoute] int enterpriseId)
         {
-            var response = _categoryService.Get();
+            var response = _categoryService.Get(enterpriseId);
             return Ok(response);
         }
 
         [HttpGet("{id}")]
-        public ActionResult<CategoryViewModel<ProductBasicWithIdDto>> Get([FromRoute] int id)
+        public ActionResult<CategoryViewModel<ProductBasicWithIdDto>> GetById([FromRoute] int enterpriseId, [FromRoute] int id)
         {
-            var categoryViewModel = _categoryService.GetById(id);
+            var categoryViewModel = _categoryService.GetById(enterpriseId, id);
             return Ok(categoryViewModel);
         }
 
         [HttpPost]
-        public ActionResult Create([FromBody] CategoryCoreDto dto)
+        public ActionResult Create([FromRoute] int enterpriseId, [FromBody] CategoryCoreDto dto)
         {
-            var categoryId = _categoryService.Create(dto);
-            return CreatedAtAction(nameof(Get), new { id = categoryId }, null);
+            var categoryId = _categoryService.Create(enterpriseId, dto);
+            return CreatedAtAction(nameof(Get), new { enterpriseId = enterpriseId, id = categoryId }, null);
         }
 
         [HttpPatch]
-        public ActionResult Update([FromBody] CategoryDto dto)
+        public ActionResult Update([FromRoute] int enterpriseId, [FromBody] CategoryDto dto)
         {
-            _categoryService.Update(dto);
+            _categoryService.Update(enterpriseId, dto);
             return NoContent();
         }
 
         [HttpDelete("{id}")]
-        public ActionResult Delete([FromRoute] int id)
+        public ActionResult Delete([FromRoute] int enterpriseId, [FromRoute] int id)
         {
-            _categoryService.Delete(id);
+            _categoryService.Delete(enterpriseId, id);
             return NoContent();
         }
     }

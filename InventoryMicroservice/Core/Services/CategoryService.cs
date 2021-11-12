@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Authentication;
 using AutoMapper;
 using InventoryMicroservice.Core.Exceptions;
 using InventoryMicroservice.Core.Fluent;
@@ -20,19 +21,22 @@ namespace InventoryMicroservice.Core.Services
         private readonly ILogger<CategoryService> _logger;
         private readonly MicroserviceContext _context;
         private readonly IMapper _mapper;
+        private readonly IHeaderContextService _headerContextService;
 
-        public CategoryService(ILogger<CategoryService> logger, MicroserviceContext context, IMapper mapper)
+        public CategoryService(ILogger<CategoryService> logger, MicroserviceContext context, IMapper mapper, IHeaderContextService headerContextService)
         {
             _logger = logger;
             _context = context;
             _mapper = mapper;
+            _headerContextService = headerContextService;
         }
 
-        public object Get()
+        public object Get(int enterpriseId)
         {
             var dtos = _context
                .Categories
                .AsNoTracking()
+               .Where(c => c.EspId == enterpriseId)
                .Select(c => new {
                    c.Id,
                    c.Code,
@@ -50,12 +54,12 @@ namespace InventoryMicroservice.Core.Services
             return dtos;
         }
 
-        public CategoryViewModel<ProductBasicWithIdDto> GetById(int id)
+        public CategoryViewModel<ProductBasicWithIdDto> GetById(int enterpriseId, int id)
         {
             var categoryViewModel = _context
                 .Categories
                 .AsNoTracking()
-                .Where(c => c.Id == id)
+                .Where(c => c.EspId == enterpriseId && c.Id == id)
                 .Include(c => c.Products)
                 .Select(c => CategoryViewModel<ProductBasicWithIdDto>.Builder
                     .Id(c.Id)
@@ -75,23 +79,26 @@ namespace InventoryMicroservice.Core.Services
             return categoryViewModel;
         }
 
-        public int Create(CategoryCoreDto dto)
+        public int Create(int enterpriseId, CategoryCoreDto dto)
         {
             var category = _mapper.Map<Category>(dto);
+            category.EspId = enterpriseId;
+            category.CreatedEudId = _headerContextService.GetEnterpriseUserDomainId(enterpriseId);
+
             _context.Categories.Add(category);
             _context.SaveChanges();
 
             return category.Id;
         }
 
-        public void Update(CategoryDto dto)
+        public void Update(int enterpriseId, CategoryDto dto)
         {
             throw new NotImplementedException();
         }
 
-        public void Delete(int id)
+        public void Delete(int enterpriseId, int id)
         {
-            var category = new Category() { Id = id };
+            var category = new Category() { Id = id, EspId = enterpriseId };
             _context.Categories.Attach(category);
             _context.Categories.Remove(category);
             _context.SaveChanges();

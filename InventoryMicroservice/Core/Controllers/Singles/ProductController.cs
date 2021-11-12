@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 namespace InventoryMicroservice.Core.Controllers.Singles
 {
     [ApiController]
-    [Route("/api/inventory/1.0.0/products")]
+    [Route("/api/inventory/1.0.0/{enterpriseId}/products")]
     public class ProductController : ControllerBase
     {
         private readonly ILogger<ProductController> _logger;
@@ -25,40 +25,41 @@ namespace InventoryMicroservice.Core.Controllers.Singles
         }
 
         [HttpGet]
-        public ActionResult<object> Get()
+        public ActionResult<object> Get([FromRoute] int enterpriseId)
         {
-            var response = _productService.Get();
+            var response = _productService.Get(enterpriseId);
             return Ok(response);
         }
 
         [HttpGet("{id}")]
-        public ActionResult<ProductViewModel<AllergenDto, CategoryDto>> Get([FromRoute] int id)
+        public ActionResult<ProductViewModel<AllergenDto, CategoryDto>> GetById([FromRoute] int enterpriseId, [FromRoute] int id)
         {
-            var productViewModel = _productService.GetById(id);
+            var productViewModel = _productService.GetById(enterpriseId, id);
             return Ok(productViewModel);
         }
 
         [HttpPost]
-        public async Task<ActionResult> Create([FromBody] ProductCoreDto<int, int> dto)
+        public async Task<ActionResult> Create([FromRoute] int enterpriseId, [FromBody] ProductCoreDto<int, int> dto)
         {
-            var id = await _productService.Create(dto);
-            return CreatedAtAction(nameof(Get), new { id = id }, null);
+            var id = await _productService.Create(enterpriseId, dto);
+            return CreatedAtAction(nameof(Get), new { enterpriseId = enterpriseId, id = id }, null);
         }
 
         [HttpPatch]
         public async Task<ActionResult> Update(
+            [FromRoute] int enterpriseId,
             [FromBody] ProductDto<int, int> dto, 
             [FromQuery] ICollection<int> removeAllergensIds,
             [FromQuery] ICollection<int> removeCategoriesIds)
         {
-            await _productService.Update(dto, removeAllergensIds, removeCategoriesIds);
+            await _productService.Update(enterpriseId, dto, removeAllergensIds, removeCategoriesIds);
             return NoContent();
         }
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult> Delete([FromRoute] int id)
+        public async Task<ActionResult> Delete([FromRoute] int enterpriseId, [FromRoute] int id)
         {
-            await _productService.Delete(id);
+            await _productService.Delete(enterpriseId, id);
             return NoContent();
         }
     }

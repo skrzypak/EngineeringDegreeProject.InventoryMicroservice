@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Authentication;
 using AutoMapper;
 using InventoryMicroservice.Core.Exceptions;
 using InventoryMicroservice.Core.Fluent;
@@ -18,20 +19,23 @@ namespace InventoryMicroservice.Core.Services
         private readonly ILogger<MicroserviceService> _logger;
         private readonly MicroserviceContext _context;
         private readonly IMapper _mapper;
+        private readonly IHeaderContextService _headerContextService;
 
-        public MicroserviceService(ILogger<MicroserviceService> logger, MicroserviceContext context, IMapper mapper)
+        public MicroserviceService(ILogger<MicroserviceService> logger, MicroserviceContext context, IMapper mapper, IHeaderContextService headerContextService)
         {
             _logger = logger;
             _context = context;
             _mapper = mapper;
+            _headerContextService = headerContextService;
         }
 
-        public object GetAvaliableInventoryItems()
+        public object GetAvaliableInventoryItems(int enterpriseId)
         {
             var dto = _context.Inventories
                 .AsNoTracking()
                 .Include(iv => iv.Product)
                     .ThenInclude(c => c.Category)
+                .Where(iv => iv.EspId == enterpriseId)
                 .Select(iv => new
                 {
                     InventoryId = iv.Id,
@@ -80,12 +84,13 @@ namespace InventoryMicroservice.Core.Services
             return dto;
         }
 
-        public object GetInventorySummary(DateTime startDate, DateTime endDate) 
+        public object GetInventorySummary(int enterpriseId, DateTime startDate, DateTime endDate) 
         {
             var dtos = _context.Inventories
                 .AsNoTracking()
                 .Include(iv => iv.Product)
                 .Include(iv => iv.InventoryOperations)
+                .Where(iv => iv.EspId == enterpriseId)
                 .Select(iv => new
                 {
                     ProductId = iv.ProductId,
@@ -145,9 +150,10 @@ namespace InventoryMicroservice.Core.Services
             return dtos;
         }
 
-        public void UpdateInventoryItemManual(int id, InventoryOperationType operationType, ushort quantity)
+        public void UpdateInventoryItemManual(int enterpriseId, int id, InventoryOperationType operationType, ushort quantity)
         {
-            var item = _context.Inventories.FirstOrDefault(iv => iv.Id == id);
+            var item = _context.Inventories.FirstOrDefault(iv => iv.EspId == enterpriseId && iv.Id == id);
+            item.LastUpdatedEudId = _headerContextService.GetEnterpriseUserDomainId(enterpriseId);
 
             if (item is null)
             {
@@ -166,8 +172,10 @@ namespace InventoryMicroservice.Core.Services
             {
                 InventoryId = id,
                 Quantity = quantity,
-                Description = "user",
-                Date = DateTime.Now
+                Description = "USER",
+                Date = DateTime.Now,
+                EspId = enterpriseId,
+                CreatedEudId = _headerContextService.GetEnterpriseUserDomainId(enterpriseId)
             };
 
             switch (operationType)
@@ -201,12 +209,12 @@ namespace InventoryMicroservice.Core.Services
             _context.SaveChanges();
         }
 
-        public void UpdateInventoryProduct(int productId, InventoryOperationType operationType, ushort quantity, ushort unitMeasureValue)
+        public void UpdateInventoryProduct(int enterpriseId, int productId, InventoryOperationType operationType, ushort quantity, ushort unitMeasureValue)
         {
             var matchingItems = _context.Products
                 .AsNoTracking()
                 .Include(p => p.AsInventoryItem)
-                .Where(p => p.Id == productId)
+                .Where(p => p.EspId == enterpriseId && p.Id == productId)
                 .SelectMany(p => 
                     p.AsInventoryItem.Select(iv => new {
                         iv.Id,
@@ -242,6 +250,7 @@ namespace InventoryMicroservice.Core.Services
                 if (todo > 0)
                 {
                     var model = _context.Inventories.First(iv => iv.Id == item.Id);
+                    model.LastUpdatedEudId = _headerContextService.GetEnterpriseUserDomainId(enterpriseId);
 
                     if (model.NumOfAvailable < todo)
                     {
@@ -284,7 +293,9 @@ namespace InventoryMicroservice.Core.Services
                         Quantity = processing,
                         Operation = operationType,
                         Description = "USER/SYSTEM/AUTO",
-                        Date = DateTime.Now
+                        Date = DateTime.Now,
+                        EspId = enterpriseId,
+                        CreatedEudId = _headerContextService.GetEnterpriseUserDomainId(enterpriseId)
                     });
 
                 } else

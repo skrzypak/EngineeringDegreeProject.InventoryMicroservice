@@ -64,7 +64,9 @@ namespace InventoryMicroservice.Comunication.Consumers
                 {
                     case CRUD.Create:
                     {
-                         var model = CreateItem(val.SupplierId, val.DocumentId, item);
+                        var model = CreateItem(val.SupplierId, val.DocumentId, item);
+                        model.EspId = val.EspId;
+                        model.CreatedEudId = val.EudId;
                         _context.Inventories.Add(model);
                         break;
                     }
@@ -75,6 +77,7 @@ namespace InventoryMicroservice.Comunication.Consumers
                     case CRUD.Delete:
                     {
                         var model = _context.Inventories.Where(i =>
+                            i.EspId == val.EspId &&
                             i.SupplierId == val.SupplierId &&
                             i.DocumentId == val.DocumentId &&
                             i.DocumentToProductId == item.DocumentToProductId
