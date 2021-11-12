@@ -98,9 +98,12 @@ namespace InventoryMicroservice.Core.Services
 
         public void Delete(int enterpriseId, int id)
         {
-            var category = new Category() { Id = id, EspId = enterpriseId };
-            _context.Categories.Attach(category);
-            _context.Categories.Remove(category);
+            var model = _context.Categories
+                .FirstOrDefault(c =>
+                    c.Id == id &&
+                    c.EspId == enterpriseId);
+
+            _context.Categories.Remove(model);
             _context.SaveChanges();
         }
 

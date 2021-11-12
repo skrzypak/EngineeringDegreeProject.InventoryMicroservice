@@ -133,9 +133,12 @@ namespace InventoryMicroservice.Core.Services
 
         public async Task Delete(int enterpriseId, int id)
         {
-            var product = new Product() { Id = id, EspId = enterpriseId };
-            _context.Products.Attach(product);
-            _context.Products.Remove(product);
+            var model = _context.Products
+                .FirstOrDefault(p =>
+                    p.Id == id &&
+                    p.EspId == enterpriseId);
+
+            _context.Products.Remove(model);
 
             var message = new ProductPayloadValue() { Id = id, EspId = enterpriseId };
             message.EspId = enterpriseId;
