@@ -11,5 +11,8 @@ namespace InventoryMicroservice.Core.Fluent.Entities
         public virtual Allergen Allergen { get; set; }
         public int ProductId { get; set; }
         public virtual Product Product { get; set; }
+        public int EspId { get; set; }
+        public int CreatedEudId { get; set; }
+        public int? LastUpdatedEudId { get; set; }
     }
 }

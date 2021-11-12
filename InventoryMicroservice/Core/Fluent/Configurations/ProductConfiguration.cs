@@ -12,15 +12,27 @@ namespace InventoryMicroservice.Core.Fluent.Configurations
     {
         public void Configure(EntityTypeBuilder<Product> modelBuilder)
         {
-            modelBuilder.HasKey(a => a.Id);
+            modelBuilder.HasKey(a => new { a.Id, a.EspId });
             modelBuilder.Property(a => a.Id).ValueGeneratedOnAdd().IsRequired();
 
             modelBuilder.Property(a => a.CategoryId).IsRequired();
+
+            modelBuilder
+                .HasOne(p => p.Category)
+                .WithMany(c => c.Products)
+                .HasForeignKey(p => new { p.CategoryId, p.EspId })
+                .HasPrincipalKey(c => new { c.Id, c.EspId });
 
             modelBuilder.Property(a => a.Code).HasMaxLength(6).IsRequired(false);
             modelBuilder.Property(a => a.Name).HasMaxLength(300).IsRequired();
             modelBuilder.Property(a => a.Unit).HasConversion<string>().HasMaxLength(10).IsRequired();
             modelBuilder.Property(a => a.Description).HasMaxLength(3000).IsRequired(false);
+
+            modelBuilder.Property(a => a.EspId).IsRequired();
+            modelBuilder.Property(a => a.CreatedEudId).IsRequired();
+            modelBuilder.Property(a => a.LastUpdatedEudId).IsRequired(false);
+            modelBuilder.Property<DateTime>("CreatedDate").HasDefaultValue<DateTime>(DateTime.Now).IsRequired();
+            modelBuilder.Property<DateTime?>("LastUpdatedDate").HasDefaultValue<DateTime?>(null).IsRequired(false);
 
             modelBuilder.ToTable("Products");
             modelBuilder.Property(a => a.Id).HasColumnName("Id");

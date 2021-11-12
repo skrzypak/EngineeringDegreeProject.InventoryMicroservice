@@ -12,19 +12,25 @@ namespace InventoryMicroservice.Core.Fluent.Configurations
     {
         public void Configure(EntityTypeBuilder<InventoryOperation> modelBuilder)
         {
-            modelBuilder.HasKey(i => i.Id);
+            modelBuilder.HasKey(i => new { i.Id, i.EspId });
             modelBuilder.Property(i => i.Id).ValueGeneratedOnAdd().IsRequired();
 
             modelBuilder.HasOne(i => i.Inventory)
                 .WithMany(inv => inv.InventoryOperations)
-                .HasForeignKey(i => i.InventoryId)
-                .HasPrincipalKey(inv => inv.Id);
+                .HasForeignKey(i => new { i.InventoryId , i.EspId})
+                .HasPrincipalKey(inv => new { inv.Id, inv.EspId });
 
             modelBuilder.Property(i => i.InventoryId).IsRequired();
 
             modelBuilder.Property(i => i.Quantity).HasDefaultValue(0).IsRequired();
             modelBuilder.Property(i => i.Operation).HasConversion<int>().IsRequired();
             modelBuilder.Property(i => i.Description).HasMaxLength(3000).IsRequired(false);
+
+            modelBuilder.Property(a => a.EspId).IsRequired();
+            modelBuilder.Property(a => a.CreatedEudId).IsRequired();
+            modelBuilder.Property(a => a.LastUpdatedEudId).IsRequired(false);
+            modelBuilder.Property<DateTime>("CreatedDate").HasDefaultValue<DateTime>(DateTime.Now).IsRequired();
+            modelBuilder.Property<DateTime?>("LastUpdatedDate").HasDefaultValue<DateTime?>(null).IsRequired(false);
 
             modelBuilder.ToTable("InventoriesOperations");
             modelBuilder.Property(i => i.Id).HasColumnName("Id");

@@ -9,5 +9,7 @@ namespace Comunication.Shared.PayloadValue
 {
     public class AllergenPayloadValue : AllergenDto, IMessage
     {
+        public int EspId { get; set; }
+        public int EudId { get; set; }
     }
 }

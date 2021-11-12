@@ -17,5 +17,8 @@ namespace InventoryMicroservice.Core.Fluent.Entities
         public Category Category { get; set; }
         public virtual ICollection<AllergenToProduct> AllergensToProducts { get; set; }
         public virtual ICollection<Inventory> AsInventoryItem { get; set; }
+        public int EspId { get; set; }
+        public int CreatedEudId { get; set; }
+        public int? LastUpdatedEudId { get; set; }
     }
 }

@@ -15,6 +15,9 @@ namespace InventoryMicroservice.Core.Fluent.Entities
         public string Description { get; set; }
         public DateTime Date { get; set; }
         public virtual Inventory Inventory { get; set; }
+        public int EspId { get; set; }
+        public int CreatedEudId { get; set; }
+        public int? LastUpdatedEudId { get; set; }
 
     }
 }

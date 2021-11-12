@@ -23,6 +23,8 @@ namespace Comunication.Shared.PayloadValue
             public decimal GrossValue { get; set; }
             public DateTime? ExpirationDate { get; set; }
         }
+        public int EspId { get; set; }
+        public int EudId { get; set; }
     }
     
 }

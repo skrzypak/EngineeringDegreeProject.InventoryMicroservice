@@ -11,5 +11,7 @@ namespace Comunication.Shared.PayloadValue
     {
         public int Id { get; set; }
         public IDictionary<int, CRUD> Allergens { get; set; } = new Dictionary<int, CRUD>();
+        public int EspId { get; set; }
+        public int EudId { get; set; }
     }
 }

@@ -12,14 +12,21 @@ namespace InventoryMicroservice.Core.Fluent.Configurations
     {
         public void Configure(EntityTypeBuilder<Inventory> modelBuilder)
         {
-            modelBuilder.Property(i => i.Id).ValueGeneratedOnAdd().IsRequired();
-            modelBuilder.HasIndex(i => i.Id).IsUnique();
+            modelBuilder.HasKey(i => new { i.SupplierId, i.DocumentId, i.DocumentToProductId, i.EspId });
 
-            modelBuilder.HasKey(i => new { i.SupplierId, i.DocumentId, i.DocumentToProductId });
             modelBuilder.Property(i => i.SupplierId).IsRequired();
             modelBuilder.Property(i => i.DocumentId).IsRequired();
             modelBuilder.Property(i => i.DocumentToProductId).IsRequired();
             modelBuilder.Property(i => i.ProductId).IsRequired();
+
+            modelBuilder
+                .HasOne(i => i.Product)
+                .WithMany(p => p.AsInventoryItem)
+                .HasForeignKey(i => new { i.ProductId, i.EspId })
+                .HasPrincipalKey(p => new { p.Id, p.EspId });
+
+            modelBuilder.Property(i => i.Id).ValueGeneratedOnAdd().IsRequired();
+            modelBuilder.HasIndex(i => i.Id).IsUnique();
 
             modelBuilder.Property(i => i.NumOfAvailable).HasDefaultValue(0).IsRequired();
             modelBuilder.Property(i => i.NumOfSettled).HasDefaultValue(0).IsRequired();
@@ -32,6 +39,12 @@ namespace InventoryMicroservice.Core.Fluent.Configurations
             modelBuilder.Property(i => i.PercentageVat).HasPrecision(4, 2).IsRequired();
             modelBuilder.Property(i => i.GrossValue).HasPrecision(13, 3).IsRequired();
             modelBuilder.Property(i => i.ExpirationDate).IsRequired(false);
+
+            modelBuilder.Property(a => a.EspId).IsRequired();
+            modelBuilder.Property(a => a.CreatedEudId).IsRequired();
+            modelBuilder.Property(a => a.LastUpdatedEudId).IsRequired(false);
+            modelBuilder.Property<DateTime>("CreatedDate").HasDefaultValue<DateTime>(DateTime.Now).IsRequired();
+            modelBuilder.Property<DateTime?>("LastUpdatedDate").HasDefaultValue<DateTime?>(null).IsRequired(false);
 
             modelBuilder.ToTable("Inventories");
             modelBuilder.Property(i => i.Id).HasColumnName("Id");
