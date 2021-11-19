@@ -7,10 +7,10 @@ namespace InventoryMicroservice.Core.Interfaces.Services
 {
     public interface IAllergenService
     {
-        public object Get(int enterpriseId);
-        public AllergenViewModel<ProductBasicWithIdDto> GetById(int enterpriseId, int id);
-        public Task<int> Create(int enterpriseId, AllergenCoreDto dto);
-        public Task Update(int enterpriseId, AllergenDto dto);
-        public Task Delete(int enterpriseId, int id);
+        public object Get(int espId);
+        public AllergenViewModel<ProductBasicWithIdDto> GetById(int espId, int id);
+        public Task<int> Create(int espId, int eudId, AllergenCoreDto dto);
+        public Task Update(int espId, int eudId, AllergenDto dto);
+        public Task Delete(int espId, int eudId, int id);
     }
 }

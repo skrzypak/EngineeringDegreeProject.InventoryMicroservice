@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Authentication;
 using AutoMapper;
 using Comunication;
 using Comunication.Shared;
@@ -28,24 +26,22 @@ namespace InventoryMicroservice.Core.Services
         private readonly IMapper _mapper;
         private readonly IBus _bus;
         private readonly RabbitMq _rabbitMq;
-        private readonly IHeaderContextService _headerContextService;
 
-        public AllergenService(ILogger<AllergenService> logger, MicroserviceContext context, IMapper mapper, IBus bus, RabbitMq rabbitMq, IHeaderContextService headerContextService)
+        public AllergenService(ILogger<AllergenService> logger, MicroserviceContext context, IMapper mapper, IBus bus, RabbitMq rabbitMq)
         {
             _logger = logger;
             _context = context;
             _mapper = mapper;
             _bus = bus;
             _rabbitMq = rabbitMq;
-            _headerContextService = headerContextService;
         }
 
-        public object Get(int enterpriseId)
+        public object Get(int espId)
         {
             var dtos = _context
                .Allergens
                .AsNoTracking()
-               .Where(a => a.EspId == enterpriseId)
+               .Where(a => a.EspId == espId)
                .Select(a => new {
                     a.Id,
                     a.Code,
@@ -63,12 +59,12 @@ namespace InventoryMicroservice.Core.Services
             return dtos;
         }
 
-        public AllergenViewModel<ProductBasicWithIdDto> GetById(int enterpriseId, int id)
+        public AllergenViewModel<ProductBasicWithIdDto> GetById(int espId, int id)
         {
             var dto = _context
                 .Allergens
                 .AsNoTracking()
-                .Where(a => a.EspId == enterpriseId && a.Id == id)
+                .Where(a => a.EspId == espId && a.Id == id)
                 .Include(a2p => a2p.AllergensToProducts.OrderBy(a => a.Product.Name))
                     .ThenInclude(a2p => a2p.Product)
                 .Select(c => AllergenViewModel<ProductBasicWithIdDto>.Builder
@@ -89,11 +85,11 @@ namespace InventoryMicroservice.Core.Services
             return dto;
         }
 
-        public async Task<int> Create(int enterpriseId, AllergenCoreDto dto)
+        public async Task<int> Create(int espId, int eudId, AllergenCoreDto dto)
         {
             var model = _mapper.Map<Allergen>(dto);
-            model.EspId = enterpriseId;
-            model.CreatedEudId = _headerContextService.GetEnterpriseUserDomainId(enterpriseId);
+            model.EspId = espId;
+            model.CreatedEudId = eudId;
 
             var strategy = _context.Database.CreateExecutionStrategy();
             await strategy.ExecuteAsync(async () =>
@@ -106,7 +102,7 @@ namespace InventoryMicroservice.Core.Services
                         await _context.SaveChangesAsync();
 
                         var message = _mapper.Map<Allergen, AllergenPayloadValue>(model);
-                        message.EudId = _headerContextService.GetEnterpriseUserDomainId(enterpriseId);
+                        message.EudId = eudId;
                         await SyncAsync(message, CRUD.Create);
 
                         transaction.Commit();
@@ -122,21 +118,21 @@ namespace InventoryMicroservice.Core.Services
             return model.Id;
         }
 
-        public async Task Update(int enterpriseId, AllergenDto dto)
+        public async Task Update(int espId, int eudId, AllergenDto dto)
         {
             throw new NotImplementedException();
         }
 
-        public async Task Delete(int enterpriseId, int id)
+        public async Task Delete(int espId, int eudId, int id)
         {
             var model = _context.Allergens
                .FirstOrDefault(a =>
                    a.Id == id &&
-                   a.EspId == enterpriseId);
+                   a.EspId == espId);
 
             _context.Allergens.Remove(model);
 
-            var message = new AllergenPayloadValue() { Id = id, EspId = enterpriseId };
+            var message = new AllergenPayloadValue() { Id = id, EspId = espId };
             await SyncAsync(message, CRUD.Delete);
 
             _context.SaveChanges();

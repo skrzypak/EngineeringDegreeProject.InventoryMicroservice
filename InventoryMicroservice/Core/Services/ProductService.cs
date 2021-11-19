@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Authentication;
 using AutoMapper;
 using Comunication;
 using Comunication.Shared;
@@ -29,24 +28,23 @@ namespace InventoryMicroservice.Core.Services
         private readonly IMapper _mapper;
         private readonly IBus _bus;
         private readonly RabbitMq _rabbitMq;
-        private readonly IHeaderContextService _headerContextService;
 
-        public ProductService(ILogger<ProductService> logger, MicroserviceContext context, IMapper mapper, IBus bus, RabbitMq rabbitMq, IHeaderContextService headerContextService)
+        public ProductService(ILogger<ProductService> logger, MicroserviceContext context, IMapper mapper, IBus bus, RabbitMq rabbitMq)
         {
             _logger = logger;
             _context = context;
             _mapper = mapper;
             _bus = bus;
             _rabbitMq = rabbitMq;
-            _headerContextService = headerContextService;
         }
 
-        public object Get(int enterpriseId)
+        public object Get(int espId)
         {
+
             var dtos = _context
                .Products
                .AsNoTracking()
-               .Where(p => p.EspId == enterpriseId)
+               .Where(p => p.EspId == espId)
                .Select(p => new {
                    p.Id,
                    p.Code,
@@ -64,7 +62,7 @@ namespace InventoryMicroservice.Core.Services
             return dtos;
         }
 
-        public ProductViewModel<AllergenDto, CategoryDto> GetById(int enterpriseId, int id)
+        public ProductViewModel<AllergenDto, CategoryDto> GetById(int espId, int id)
         {
             var productViewModel = _context
                 .Products
@@ -73,7 +71,7 @@ namespace InventoryMicroservice.Core.Services
                 .Include(p => p.AllergensToProducts.OrderBy(a2p => a2p.Allergen.Name))
                     .ThenInclude(a2p => a2p.Allergen)
                 .Include(p => p.Category)
-                .Where(p => p.EspId == enterpriseId)
+                .Where(p => p.EspId == espId)
                 .Select(p => ProductViewModel<AllergenDto, CategoryDto>.Builder
                         .Id(p.Id)
                         .Code(p.Code)
@@ -93,11 +91,11 @@ namespace InventoryMicroservice.Core.Services
             return productViewModel;
         }
 
-        public async Task<int> Create(int enterpriseId, ProductCoreDto<int , int> dto)
+        public async Task<int> Create(int espId, int eudId, ProductCoreDto<int , int> dto)
         {
             var model = _mapper.Map<ProductCoreDto<int, int>, Product>(dto);
-            model.EspId = enterpriseId;
-            model.CreatedEudId = _headerContextService.GetEnterpriseUserDomainId(enterpriseId);
+            model.EspId = espId;
+            model.CreatedEudId = eudId;
 
             var strategy = _context.Database.CreateExecutionStrategy();
             await strategy.ExecuteAsync(async () =>
@@ -110,7 +108,7 @@ namespace InventoryMicroservice.Core.Services
                         await _context.SaveChangesAsync();
 
                         var message = _mapper.Map<Product, ProductPayloadValue>(model);
-                        message.EudId = _headerContextService.GetEnterpriseUserDomainId(enterpriseId);
+                        message.EudId = eudId;
                         await SyncAsync(message, CRUD.Create);
 
                         transaction.Commit();
@@ -126,23 +124,21 @@ namespace InventoryMicroservice.Core.Services
             return model.Id;
         }
 
-        public async Task Update(int enterpriseId, ProductDto<int, int> dto, ICollection<int> removeAllergensIds, ICollection<int> removeCategoriesIds)
+        public async Task Update(int espId, int eudId, ProductDto<int, int> dto, ICollection<int> removeAllergensIds, ICollection<int> removeCategoriesIds)
         {
             throw new NotImplementedException();
         }
 
-        public async Task Delete(int enterpriseId, int id)
+        public async Task Delete(int espId, int eudId, int id)
         {
             var model = _context.Products
                 .FirstOrDefault(p =>
                     p.Id == id &&
-                    p.EspId == enterpriseId);
+                    p.EspId == espId);
 
             _context.Products.Remove(model);
 
-            var message = new ProductPayloadValue() { Id = id, EspId = enterpriseId };
-            message.EspId = enterpriseId;
-            message.EudId = _headerContextService.GetEnterpriseUserDomainId(enterpriseId);
+            var message = new ProductPayloadValue() { Id = id, EspId = espId, EudId = eudId };
             await SyncAsync(message, CRUD.Delete);
 
             _context.SaveChanges();

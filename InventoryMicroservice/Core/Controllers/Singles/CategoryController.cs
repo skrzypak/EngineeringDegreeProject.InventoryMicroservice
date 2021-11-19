@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Authentication;
 using InventoryMicroservice.Core.Interfaces.Services;
 using InventoryMicroservice.Core.Models.Dto.Category;
 using InventoryMicroservice.Core.Models.Dto.Product;
@@ -12,51 +9,56 @@ using Microsoft.Extensions.Logging;
 namespace InventoryMicroservice.Core.Controllers.Singles
 {
     [ApiController]
-    [Route("/api/inventory/1.0.0/{enterpriseId}/categories")]
+    [Route("/api/inventory/1.0.0/categories")]
     public class CategoryController: ControllerBase
     {
         private readonly ILogger<CategoryController> _logger;
         private readonly ICategoryService _categoryService;
+        private readonly IHeaderContextService _headerContextService;
 
-        public CategoryController(ILogger<CategoryController> logger, ICategoryService categoryService)
+        public CategoryController(ILogger<CategoryController> logger, ICategoryService categoryService, IHeaderContextService headerContextService)
         {
             _logger = logger;
             _categoryService = categoryService;
+            _headerContextService = headerContextService;
         }
 
 
         [HttpGet]
-        public ActionResult<object> Get([FromRoute] int enterpriseId)
+        public ActionResult<object> Get([FromQuery] int espId)
         {
-            var response = _categoryService.Get(enterpriseId);
+            var response = _categoryService.Get(espId);
             return Ok(response);
         }
 
         [HttpGet("{id}")]
-        public ActionResult<CategoryViewModel<ProductBasicWithIdDto>> GetById([FromRoute] int enterpriseId, [FromRoute] int id)
+        public ActionResult<CategoryViewModel<ProductBasicWithIdDto>> GetById([FromQuery] int espId, [FromRoute] int id)
         {
-            var categoryViewModel = _categoryService.GetById(enterpriseId, id);
+            var categoryViewModel = _categoryService.GetById(espId, id);
             return Ok(categoryViewModel);
         }
 
         [HttpPost]
-        public ActionResult Create([FromRoute] int enterpriseId, [FromBody] CategoryCoreDto dto)
+        public ActionResult Create([FromQuery] int espId, [FromBody] CategoryCoreDto dto)
         {
-            var categoryId = _categoryService.Create(enterpriseId, dto);
-            return CreatedAtAction(nameof(Get), new { enterpriseId = enterpriseId, id = categoryId }, null);
+            int eudId = _headerContextService.GetEudId();
+            var categoryId = _categoryService.Create(espId, eudId, dto);
+            return CreatedAtAction(nameof(Get), new { id = categoryId, espId = espId }, null);
         }
 
         [HttpPatch]
-        public ActionResult Update([FromRoute] int enterpriseId, [FromBody] CategoryDto dto)
+        public ActionResult Update([FromQuery] int espId, [FromBody] CategoryDto dto)
         {
-            _categoryService.Update(enterpriseId, dto);
+            int eudId = _headerContextService.GetEudId();
+            _categoryService.Update(espId, eudId, dto);
             return NoContent();
         }
 
         [HttpDelete("{id}")]
-        public ActionResult Delete([FromRoute] int enterpriseId, [FromRoute] int id)
+        public ActionResult Delete([FromQuery] int espId, [FromRoute] int id)
         {
-            _categoryService.Delete(enterpriseId, id);
+            int eudId = _headerContextService.GetEudId();
+            _categoryService.Delete(espId, eudId, id);
             return NoContent();
         }
     }
