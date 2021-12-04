@@ -12,7 +12,7 @@ namespace InventoryMicroservice.Core.Interfaces.Services
         public object Get(int espId);
         public ProductViewModel<AllergenDto, CategoryDto> GetById(int espId, int id);
         public Task<int> Create(int espId, int eudId, ProductCoreDto<int, int> dto);
-        public Task Update(int espId, int eudId, ProductDto<int, int> dto, ICollection<int> removeAllergensIds, ICollection<int> removeCategoriesIds);
+        public Task Update(int espId, int eudId, ProductDto<int, int> dto, ICollection<int> removeAllergensIds);
         public Task Delete(int espId, int eudId, int id);
     }
 }

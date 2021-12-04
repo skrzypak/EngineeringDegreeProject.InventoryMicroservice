@@ -124,7 +124,7 @@ namespace InventoryMicroservice.Core.Services
             return model.Id;
         }
 
-        public async Task Update(int espId, int eudId, ProductDto<int, int> dto, ICollection<int> removeAllergensIds, ICollection<int> removeCategoriesIds)
+        public async Task Update(int espId, int eudId, ProductDto<int, int> dto, ICollection<int> removeAllergensIds)
         {
             throw new NotImplementedException();
         }
