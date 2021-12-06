@@ -49,6 +49,7 @@ namespace InventoryMicroservice.Core.Services
                    p.Id,
                    p.Code,
                    p.Name,
+                   p.Unit,
                    p.Description
                })
                .OrderBy(px => px.Name)
@@ -76,6 +77,7 @@ namespace InventoryMicroservice.Core.Services
                         .Id(p.Id)
                         .Code(p.Code)
                         .Name(p.Name)
+                        .Unit(p.Unit)
                         .Description(p.Description)
                         .SetAllergens(p.AllergensToProducts.Select(a => new AllergenDto(a)).ToHashSet())
                         .Category(new CategoryDto(p.Category))
