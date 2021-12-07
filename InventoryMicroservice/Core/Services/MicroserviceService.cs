@@ -39,10 +39,12 @@ namespace InventoryMicroservice.Core.Services
                     ProductName = iv.Product.Name,
                     ProductCode = iv.Product.Code,
                     ProductDescription = iv.Product.Description,
+                    ProductUnit = iv.Product.Unit,
                     UnitMeasureValue = iv.UnitMeasureValue,
                     NumOfAvailable = iv.NumOfAvailable,
-                    Category = iv.Product.Category
-                }).ToList().GroupBy(ivx => new { ivx.Category }).Select(ivg => new
+                    Category = iv.Product.Category,
+                    iv.ExpirationDate
+                }).ToList().Where(ivx => ivx.NumOfAvailable > 0).GroupBy(ivx => new { ivx.Category.Id, ivx.Category.Code, ivx.Category.Name }).Select(ivg => new
                 {
                     ivg.Key,
                     Products = ivg.Select(g => new {
@@ -52,20 +54,24 @@ namespace InventoryMicroservice.Core.Services
                         g.ProductName,
                         g.ProductDescription,
                         g.UnitMeasureValue,
-                        g.NumOfAvailable
-                    }).ToList().GroupBy(px => new { px.ProductId, px.ProductCode, px.ProductName, px.ProductDescription }).Select(pg => new
+                        g.NumOfAvailable,
+                        g.ProductUnit,
+                        g.ExpirationDate
+                    }).ToList().GroupBy(px => new { px.ProductId, px.ProductCode, px.ProductName, px.ProductDescription, px.ProductUnit }).Select(pg => new
                     {
                         pg.Key,
                         Items = pg.Select(pg => new { 
                             InventoryId = pg.InventoryId,
                             NumOfAvailable = pg.NumOfAvailable,
                             UnitMeasureValue = pg.UnitMeasureValue,
+                            pg.ExpirationDate
                         }).ToList().GroupBy(ix => new { ix.UnitMeasureValue }).Select(ixg => new
                         {
                             ixg.Key,
                             ItemsInventoryIds = ixg.Select(g => new { 
                                 g.InventoryId,
-                                g.NumOfAvailable
+                                g.NumOfAvailable,
+                                g.ExpirationDate
                             }),
                             TotalNumOfAvailable = ixg.Sum(g => g.NumOfAvailable)
                         }),
@@ -117,7 +123,7 @@ namespace InventoryMicroservice.Core.Services
                         .Where(ivo => ivo.Operation == InventoryOperationType.Settle || ivo.Operation == InventoryOperationType.Spoile || ivo.Operation == InventoryOperationType.Damage)
                         .Where(ivo => startDate <= ivo.Date && ivo.Date <= endDate)
                         .Sum(ivo => ivo.Quantity * (decimal)(ivo.Inventory.GrossValue / ivo.Inventory.Quantity)),
-                }).ToList().GroupBy(ivx => new { ivx.ProductId, ivx.Name }).Select(ivg => new
+                }).ToList().Where(ivx => ivx.SettledItem > 0 || ivx.SpoiledItem > 0 || ivx.DamagedItem > 0).GroupBy(ivx => new { ivx.ProductId, ivx.Name }).Select(ivg => new
                 {
                     ivg.Key,
                     Items = ivg.Select(g => new
