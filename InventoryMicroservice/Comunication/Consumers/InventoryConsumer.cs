@@ -64,7 +64,7 @@ namespace InventoryMicroservice.Comunication.Consumers
                 {
                     case CRUD.Create:
                     {
-                        var model = CreateItem(val.SupplierId, val.DocumentId, item);
+                        var model = CreateItem(val.SupplierId, val.DocumentId, val.EspId, item);
                         model.EspId = val.EspId;
                         model.CreatedEudId = val.EudId;
                         _context.Inventories.Add(model);
@@ -114,14 +114,16 @@ namespace InventoryMicroservice.Comunication.Consumers
             {
                 if (item.Crud == CRUD.Create)
                 {
-                    inventories.Add(CreateItem(val.SupplierId, val.DocumentId, item));
+                    var i = CreateItem(val.SupplierId, val.DocumentId, val.EspId, item);
+                    i.CreatedEudId = val.EudId;
+                    inventories.Add(i);
                 }
             }
 
             return inventories;
         }
 
-        private Inventory CreateItem(int InvoicingSupplierId, int InvoicingDocumentId, InventoryPayloadValue.ItemsPayloadValue item)
+        private Inventory CreateItem(int InvoicingSupplierId, int InvoicingDocumentId, int EspId, InventoryPayloadValue.ItemsPayloadValue item)
         {
             return new Inventory()
             {
@@ -136,6 +138,7 @@ namespace InventoryMicroservice.Comunication.Consumers
                 Quantity = item.Quantity,
                 PercentageVat = item.PercentageVat,
                 GrossValue = item.GrossValue,
+                EspId = EspId,
                 NumOfSettled = 0,
                 NumOfSpoiled = 0,
                 NumOfDamaged = 0

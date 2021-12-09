@@ -97,7 +97,10 @@ namespace InventoryMicroservice.Core.Services
                 {
                     ProductId = iv.ProductId,
                     Name = iv.Product.Name,
+                    Code = iv.Product.Code,
+                    Description = iv.Product.Description,
                     UnitMeasureValue = iv.UnitMeasureValue,
+                    Unit = iv.Product.Unit,
                     SettledItem = iv.InventoryOperations
                         .Where(ivo => ivo.InventoryId == iv.Id)
                         .Where(ivo => ivo.Operation == InventoryOperationType.Settle)
@@ -123,7 +126,7 @@ namespace InventoryMicroservice.Core.Services
                         .Where(ivo => ivo.Operation == InventoryOperationType.Settle || ivo.Operation == InventoryOperationType.Spoile || ivo.Operation == InventoryOperationType.Damage)
                         .Where(ivo => startDate <= ivo.Date && ivo.Date <= endDate)
                         .Sum(ivo => ivo.Quantity * (decimal)(ivo.Inventory.GrossValue / ivo.Inventory.Quantity)),
-                }).ToList().Where(ivx => ivx.SettledItem > 0 || ivx.SpoiledItem > 0 || ivx.DamagedItem > 0).GroupBy(ivx => new { ivx.ProductId, ivx.Name }).Select(ivg => new
+                }).ToList().Where(ivx => ivx.SettledItem > 0 || ivx.SpoiledItem > 0 || ivx.DamagedItem > 0).GroupBy(ivx => new { ivx.ProductId, ivx.Name, ivx.Code, ivx.Unit, ivx.Description }).Select(ivg => new
                 {
                     ivg.Key,
                     Items = ivg.Select(g => new
@@ -142,12 +145,7 @@ namespace InventoryMicroservice.Core.Services
                         TotalNetPriceItem = gxg.Sum(g => g.NetPriceItem),
                         TotalGrossValueItem = gxg.Sum(g => g.GrossValueItem)
                     })
-                }).ToList();
-
-            if (dtos is null || dtos.Count() == 0)
-            {
-                throw new NotFoundException($"Summary from {startDate.Date} - {endDate.Date} is empty");
-            }
+                }).ToList().OrderBy(l => l.Key.Name);
 
             return dtos;
         }
