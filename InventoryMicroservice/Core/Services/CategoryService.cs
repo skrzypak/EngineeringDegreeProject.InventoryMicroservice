@@ -88,7 +88,20 @@ namespace InventoryMicroservice.Core.Services
 
         public void Update(int espId, int eudId, CategoryDto dto)
         {
-            throw new NotImplementedException();
+            var model = _context.Categories.Where(c => c.Id == dto.Id && c.EspId == espId).FirstOrDefault();
+
+            if (model is null)
+            {
+                throw new NotFoundException($"Category with ID {dto.Id} NOT FOUND");
+            }
+
+            model.Code = dto.Code;
+            model.Name = dto.Name;
+            model.Description = dto.Description;
+            model.LastUpdatedEudId = eudId;
+
+            _context.Categories.Update(model);
+            _context.SaveChanges();
         }
 
         public void Delete(int espId, int eudId, int id)

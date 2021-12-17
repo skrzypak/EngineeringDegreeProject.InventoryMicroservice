@@ -51,11 +51,10 @@ namespace InventoryMicroservice.Core.Controllers.Singles
         [HttpPatch]
         public async Task<ActionResult> Update(
             [FromQuery] int espId,
-            [FromBody] ProductDto<int, int> dto, 
-            [FromQuery] ICollection<int> removeAllergensIds)
+            [FromBody] ProductDto<int, int> dto)
         {
             int eudId = _headerContextService.GetEudId();
-            await _productService.Update(espId, eudId, dto, removeAllergensIds);
+            await _productService.Update(espId, eudId, dto);
             return NoContent();
         }
 

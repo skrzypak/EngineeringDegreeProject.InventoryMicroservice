@@ -120,7 +120,41 @@ namespace InventoryMicroservice.Core.Services
 
         public async Task Update(int espId, int eudId, AllergenDto dto)
         {
-            throw new NotImplementedException();
+            var model = _context.Allergens.Where(a => a.Id == dto.Id && a.EspId == espId).FirstOrDefault();
+
+            if (model is null)
+            {
+                throw new NotFoundException($"Allergen with ID {dto.Id} NOT FOUND");
+            }
+
+            model.Code = dto.Code;
+            model.Name = dto.Name;
+            model.Description = dto.Description;
+            model.LastUpdatedEudId = eudId;
+
+            var strategy = _context.Database.CreateExecutionStrategy();
+            await strategy.ExecuteAsync(async () =>
+            {
+                using (var transaction = _context.Database.BeginTransaction())
+                {
+                    try
+                    {
+                        _context.Allergens.Update(model);
+                        await _context.SaveChangesAsync();
+
+                        var message = _mapper.Map<Allergen, AllergenPayloadValue>(model);
+                        message.EudId = eudId;
+                        await SyncAsync(message, CRUD.Update);
+
+                        transaction.Commit();
+                    }
+                    catch (Exception)
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
+                }
+            });
         }
 
         public async Task Delete(int espId, int eudId, int id)

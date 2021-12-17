@@ -126,9 +126,50 @@ namespace InventoryMicroservice.Core.Services
             return model.Id;
         }
 
-        public async Task Update(int espId, int eudId, ProductDto<int, int> dto, ICollection<int> removeAllergensIds)
+        public async Task Update(int espId, int eudId, ProductDto<int, int> dto)
         {
-            throw new NotImplementedException();
+
+            var model = _context.Products.Where(p => p.Id == dto.Id && p.EspId == espId).FirstOrDefault();
+
+            if (model is null)
+            {
+                throw new NotFoundException($"Product with ID {dto.Id} NOT FOUND");
+            }
+
+            var dtomap = _mapper.Map<ProductCoreDto<int, int>, Product>(dto);
+
+
+            model.Code = dtomap.Code;
+            model.Name = dtomap.Name;
+            model.Description = dtomap.Description;
+            model.Unit = dtomap.Unit;
+            model.Category = dtomap.Category;
+            model.AllergensToProducts = dtomap.AllergensToProducts;
+            model.LastUpdatedEudId = eudId;
+
+            var strategy = _context.Database.CreateExecutionStrategy();
+            await strategy.ExecuteAsync(async () =>
+            {
+                using (var transaction = _context.Database.BeginTransaction())
+                {
+                    try
+                    {
+                        _context.Products.Update(model);
+                        await _context.SaveChangesAsync();
+
+                        var message = _mapper.Map<Product, ProductPayloadValue>(model);
+                        message.EudId = eudId;
+                        await SyncAsync(message, CRUD.Update);
+
+                        transaction.Commit();
+                    }
+                    catch (Exception)
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
+                }
+            });
         }
 
         public async Task Delete(int espId, int eudId, int id)
