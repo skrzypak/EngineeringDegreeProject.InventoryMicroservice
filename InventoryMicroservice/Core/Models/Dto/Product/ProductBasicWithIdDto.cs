@@ -14,6 +14,10 @@ namespace InventoryMicroservice.Core.Models.Dto.Product
             Code = values.Product.Code;
             Description = values.Product.Description;
             Unit = values.Product.Unit;
+            Calories = values.Product.Calories;
+            Proteins = values.Product.Proteins;
+            Carbohydrates = values.Product.Carbohydrates;
+            Fats = values.Product.Fats;
         }
 
         public ProductBasicWithIdDto(InventoryMicroservice.Core.Fluent.Entities.Product values)
@@ -23,6 +27,10 @@ namespace InventoryMicroservice.Core.Models.Dto.Product
             Code = values.Code;
             Description = values.Description;
             Unit = values.Unit;
+            Calories = values.Calories;
+            Proteins = values.Proteins;
+            Carbohydrates = values.Carbohydrates;
+            Fats = values.Fats;
         }
 
     }

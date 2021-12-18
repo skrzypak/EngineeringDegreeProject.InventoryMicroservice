@@ -50,7 +50,8 @@ namespace InventoryMicroservice.Core.Services
                    p.Code,
                    p.Name,
                    p.Unit,
-                   p.Description
+                   p.Description,
+                   p.Calories,
                })
                .OrderBy(px => px.Name)
                .ToHashSet();
@@ -81,6 +82,10 @@ namespace InventoryMicroservice.Core.Services
                         .Description(p.Description)
                         .SetAllergens(p.AllergensToProducts.Select(a => new AllergenDto(a)).ToHashSet())
                         .Category(new CategoryDto(p.Category))
+                        .Calories(p.Calories)
+                        .Proteins(p.Proteins)
+                        .Carbohydrates(p.Carbohydrates)
+                        .Fats(p.Fats)
                         .Build()
                 )
                 .FirstOrDefault();
@@ -146,6 +151,11 @@ namespace InventoryMicroservice.Core.Services
             model.Category = dtomap.Category;
             model.AllergensToProducts = dtomap.AllergensToProducts;
             model.LastUpdatedEudId = eudId;
+
+            model.Calories = dtomap.Calories;
+            model.Proteins = dtomap.Proteins;
+            model.Carbohydrates = dtomap.Carbohydrates;
+            model.Fats = dtomap.Fats;
 
             var strategy = _context.Database.CreateExecutionStrategy();
             await strategy.ExecuteAsync(async () =>

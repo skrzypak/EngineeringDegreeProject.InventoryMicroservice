@@ -22,6 +22,10 @@ namespace InventoryMicroservice.Core.Models.ViewModel.Product
             private UnitType unit;
             private ICollection<TA> allergens = new HashSet<TA>();
             private TC category;
+            private int? calories;
+            private float? proteins;
+            private float? carbohydrates;
+            private float? fats;
 
             public ProductViewModelBuilder Id(int id)
             {
@@ -53,6 +57,32 @@ namespace InventoryMicroservice.Core.Models.ViewModel.Product
                 return this;
             }
 
+            public ProductViewModelBuilder Calories(int? calories)
+            {
+                this.calories = calories;
+                return this;
+            }
+
+
+            public ProductViewModelBuilder Proteins(float? proteins)
+            {
+                this.proteins = proteins;
+                return this;
+            }
+
+
+            public ProductViewModelBuilder Carbohydrates(float? carbohydrates)
+            {
+                this.carbohydrates = carbohydrates;
+                return this;
+            }
+
+            public ProductViewModelBuilder Fats(float? fats)
+            {
+                this.fats = fats;
+                return this;
+            }
+
             public ProductViewModelBuilder SetAllergens(ICollection<TA> allergens)
             {
                 this.allergens = allergens;
@@ -81,7 +111,11 @@ namespace InventoryMicroservice.Core.Models.ViewModel.Product
                     Description = this.description,
                     Unit = this.unit,
                     Allergens = this.allergens,
-                    Category = this.category
+                    Category = this.category,
+                    Calories = this.calories,
+                    Proteins = this.proteins,
+                    Carbohydrates = this.carbohydrates,
+                    Fats = this.fats
                 };
                 return item;
             }

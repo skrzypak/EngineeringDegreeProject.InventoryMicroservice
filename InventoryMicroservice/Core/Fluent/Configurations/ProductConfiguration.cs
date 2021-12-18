@@ -34,12 +34,22 @@ namespace InventoryMicroservice.Core.Fluent.Configurations
             modelBuilder.Property<DateTime>("CreatedDate").HasDefaultValue<DateTime>(DateTime.Now).IsRequired();
             modelBuilder.Property<DateTime?>("LastUpdatedDate").HasDefaultValue<DateTime?>(null).IsRequired(false);
 
+            modelBuilder.Property(a => a.Calories).HasDefaultValue<int?>(null).IsRequired(false);
+            modelBuilder.Property(a => a.Proteins).HasDefaultValue<float?>(null).IsRequired(false);
+            modelBuilder.Property(a => a.Carbohydrates).HasDefaultValue<float?>(null).IsRequired(false);
+            modelBuilder.Property(a => a.Fats).HasDefaultValue<float?>(null).IsRequired(false);
+
             modelBuilder.ToTable("Products");
             modelBuilder.Property(a => a.Id).HasColumnName("Id");
             modelBuilder.Property(a => a.CategoryId).HasColumnName("CategoryId");
             modelBuilder.Property(a => a.Name).HasColumnName("Name");
             modelBuilder.Property(a => a.Unit).HasColumnName("Unit");
             modelBuilder.Property(a => a.Description).HasColumnName("Description");
+
+            modelBuilder.Property(a => a.Calories).HasColumnName("Calories");
+            modelBuilder.Property(a => a.Proteins).HasColumnName("Proteins");
+            modelBuilder.Property(a => a.Carbohydrates).HasColumnName("Carbohydrates");
+            modelBuilder.Property(a => a.Fats).HasColumnName("Fats");
         }
     }
 }

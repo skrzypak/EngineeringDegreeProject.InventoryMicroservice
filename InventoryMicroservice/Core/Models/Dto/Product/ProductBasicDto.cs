@@ -14,5 +14,9 @@ namespace InventoryMicroservice.Core.Models.Dto.Product
         [MaxLength(3000)]
         public virtual string Description { get; set; }
         public virtual UnitType Unit { get; set; }
+        public int? Calories { get; set; }
+        public float? Proteins { get; set; }
+        public float? Carbohydrates { get; set; }
+        public float? Fats { get; set; }
     }
 }
