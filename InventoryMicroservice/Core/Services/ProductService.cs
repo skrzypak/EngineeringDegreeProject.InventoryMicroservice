@@ -134,7 +134,7 @@ namespace InventoryMicroservice.Core.Services
         public async Task Update(int espId, int eudId, ProductDto<int, int> dto)
         {
 
-            var model = _context.Products.Where(p => p.Id == dto.Id && p.EspId == espId).FirstOrDefault();
+            var model = _context.Products.Include(e => e.AllergensToProducts).Where(p => p.Id == dto.Id && p.EspId == espId).FirstOrDefault();
 
             if (model is null)
             {
@@ -149,7 +149,20 @@ namespace InventoryMicroservice.Core.Services
             model.Description = dtomap.Description;
             model.Unit = dtomap.Unit;
             model.Category = dtomap.Category;
-            model.AllergensToProducts = dtomap.AllergensToProducts;
+
+            var oldItems = model.AllergensToProducts.Select(e => e.AllergenId).ToList();
+            var newItems = dto.Allergens.ToList();
+            var toRemove = oldItems.Except(newItems).ToList();
+            var toAdd = newItems.Except(oldItems).ToList();
+
+            model.AllergensToProducts = model.AllergensToProducts.Where(e => toRemove.Contains(e.AllergenId) == false).ToList();
+
+            foreach (var id in toAdd)
+            {
+                model.AllergensToProducts.Add(new AllergenToProduct { AllergenId = id, EspId = espId, CreatedEudId = eudId });
+            }
+
+            //model.AllergensToProducts = dtomap.AllergensToProducts;
             model.LastUpdatedEudId = eudId;
 
             model.Calories = dtomap.Calories;
@@ -173,7 +186,7 @@ namespace InventoryMicroservice.Core.Services
 
                         transaction.Commit();
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
                         transaction.Rollback();
                         throw;
